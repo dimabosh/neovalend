@@ -168,17 +168,22 @@ async function deployCorePhase1() {
                             ? 'https://xexplorer.neo.org/api'
                             : 'https://xt4scan.ngd.network/api';
 
-                        // Верификация с точными параметрами из foundry.toml
-                        // Для библиотек без constructor - НЕ указываем --constructor-args вообще
-                        // Blockscout сам определит что constructor args отсутствуют
-                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --guess-constructor-args --watch`;
+                        // Верификация с flattened source для лучшей совместимости с Blockscout
+                        // --flatten создаёт единый файл без импортов
+                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --flatten --watch`;
 
                         const verifyOutput = execSync(verifyCommand, {
                             stdio: 'pipe',
                             encoding: 'utf8',
                             timeout: 120000
                         });
-                        console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
+
+                        // Проверяем что верификация успешна
+                        if (verifyOutput.includes('Successfully verified') || verifyOutput.includes('Contract successfully verified')) {
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
+                        } else {
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (submitted)`);
+                        }
                     } catch (verifyError) {
                         const errorMsg = verifyError.stderr ? verifyError.stderr.toString() : verifyError.message;
                         // Если уже верифицирован - это OK
