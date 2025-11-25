@@ -171,13 +171,15 @@ async function deployCorePhase1() {
 
                     try {
                         // Команда согласно документации Blockscout для Foundry
-                        // Увеличиваем retries для надёжности
+                        // --constructor-args "" явно указывает пустые аргументы
+                        // Это решает проблему с bytecode_hash=none в foundry.toml
                         const verifyCommand = `forge verify-contract \
                             --rpc-url ${process.env.RPC_URL_SEPOLIA} \
                             ${contractAddress} \
                             "${contractForFoundry}" \
                             --verifier blockscout \
                             --verifier-url ${verifierUrl} \
+                            --constructor-args "" \
                             --retries 5 \
                             --delay 10 \
                             --watch`;
