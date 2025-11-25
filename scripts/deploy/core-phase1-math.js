@@ -106,7 +106,7 @@ async function deployCorePhase1() {
 
             const contractForFoundry = libConfig.path + ':' + libConfig.name;
 
-            // Деплой БЕЗ верификации, верификация отдельно через forge verify-contract --flatten
+            // Деплой БЕЗ верификации, верификация отдельно через forge verify-contract
             const verifierUrl = network === 'neox-mainnet'
                 ? 'https://xexplorer.neo.org/api/'
                 : 'https://xt4scan.ngd.network/api/';
@@ -180,7 +180,7 @@ async function deployCorePhase1() {
                     // Ждем 15 секунд чтобы Blockscout проиндексировал контракт
                     await new Promise(resolve => setTimeout(resolve, 15000));
 
-                    const verifyCommand = `forge verify-contract --rpc-url ${process.env.RPC_URL_SEPOLIA} ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --flatten`;
+                    const verifyCommand = `forge verify-contract --rpc-url ${process.env.RPC_URL_SEPOLIA} ${contractAddress} ${contractForFoundry} --verifier blockscout --verifier-url ${verifierUrl}`;
 
                     let verified = false;
                     for (let attempt = 1; attempt <= 3; attempt++) {
