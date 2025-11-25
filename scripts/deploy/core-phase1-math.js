@@ -168,9 +168,8 @@ async function deployCorePhase1() {
                             ? 'https://xexplorer.neo.org/api'
                             : 'https://xt4scan.ngd.network/api';
 
-                        // Верификация с flattened source для лучшей совместимости с Blockscout
-                        // --flatten создаёт единый файл без импортов
-                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --flatten --watch`;
+                        // Стандартная верификация через Blockscout API
+                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --watch`;
 
                         const verifyOutput = execSync(verifyCommand, {
                             stdio: 'pipe',
