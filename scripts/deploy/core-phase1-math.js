@@ -103,10 +103,14 @@ async function deployCorePhase1() {
 
             const contractForFoundry = libConfig.path + ':' + libConfig.name;
 
-            // Деплой с --legacy флагом для NEO X
+            // Деплой с верификацией
             let foundryCommand;
             if (isNeoX) {
-                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27 --legacy`;
+                // NEO X: --legacy + верификация через Blockscout
+                const verifierUrl = network === 'neox-mainnet'
+                    ? 'https://xexplorer.neo.org/api/'
+                    : 'https://xt4scan.ngd.network/api/';
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --verify --verifier blockscout --verifier-url ${verifierUrl} --broadcast --json --use 0.8.27`;
             } else {
                 const apiKey = process.env.ETHERSCAN_API_KEY ? process.env.ETHERSCAN_API_KEY.trim() : '';
                 foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${apiKey} --broadcast --json --use 0.8.27`;
@@ -160,63 +164,8 @@ async function deployCorePhase1() {
                     console.log(`⚠️ Code verification issue: ${verifyError.message}`);
                 }
 
-                // Верификация через Blockscout для NEO X
-                if (isNeoX) {
-                    console.log(`   📝 Verifying on Blockscout...`);
-
-                    // URL должен заканчиваться на /api/ согласно документации Blockscout
-                    const verifierUrl = network === 'neox-mainnet'
-                        ? 'https://xexplorer.neo.org/api/'
-                        : 'https://xt4scan.ngd.network/api/';
-
-                    try {
-                        // Команда согласно документации Blockscout для Foundry
-                        // --constructor-args "" явно указывает пустые аргументы
-                        // Это решает проблему с bytecode_hash=none в foundry.toml
-                        const verifyCommand = `forge verify-contract \
-                            --rpc-url ${process.env.RPC_URL_SEPOLIA} \
-                            ${contractAddress} \
-                            "${contractForFoundry}" \
-                            --verifier blockscout \
-                            --verifier-url ${verifierUrl} \
-                            --constructor-args "" \
-                            --retries 5 \
-                            --delay 10 \
-                            --watch`;
-
-                        const verifyOutput = execSync(verifyCommand, {
-                            stdio: 'pipe',
-                            encoding: 'utf8',
-                            timeout: 180000  // 3 минуты
-                        });
-
-                        // Показываем полный output для диагностики
-                        console.log(`   📥 Output: ${verifyOutput.replace(/\n/g, ' ').substring(0, 150)}`);
-
-                        if (verifyOutput.includes('Successfully') || verifyOutput.includes('Contract successfully verified')) {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
-                        } else if (verifyOutput.includes('already verified')) {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
-                        } else {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (submitted)`);
-                        }
-                    } catch (verifyError) {
-                        const stderr = verifyError.stderr ? verifyError.stderr.toString() : '';
-                        const stdout = verifyError.stdout ? verifyError.stdout.toString() : '';
-                        const output = (stderr + stdout) || verifyError.message;
-
-                        // Показываем полную ошибку
-                        console.log(`   ⚠️ Error: ${output.replace(/\n/g, ' ').substring(0, 200)}`);
-
-                        if (output.includes('already verified') || output.includes('Already Verified')) {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
-                        } else {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verification failed)`);
-                        }
-                    }
-                } else {
-                    console.log(`✅ ${libConfig.name}: ${contractAddress}`);
-                }
+                // Верификация происходит автоматически через --verify в forge create
+                console.log(`✅ ${libConfig.name}: ${contractAddress}`);
 
                 // Сохранить прогресс
                 deployments.libraries[libConfig.name] = contractAddress;
