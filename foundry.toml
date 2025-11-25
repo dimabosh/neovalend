@@ -6,7 +6,8 @@ remappings = [
   "@aave/=contracts/aave-v3-origin/src/contracts/",
   "aave-v3-origin/=contracts/aave-v3-origin/src/contracts/",
   "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
-  "openzeppelin-contracts/contracts/=node_modules/@openzeppelin/contracts/"
+  "openzeppelin-contracts/contracts/=node_modules/@openzeppelin/contracts/",
+  "openzeppelin-contracts-upgradeable/contracts/=node_modules/@openzeppelin/contracts-upgradeable/"
 ]
 
 # Use 0.8.27 - matches Aave v3.5.0 requirements
