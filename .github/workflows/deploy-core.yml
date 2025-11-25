@@ -116,7 +116,6 @@ jobs:
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
           FORCE_REDEPLOY: ${{ github.event.inputs.force_redeploy }}
           NETWORK: ${{ github.event.inputs.network }}
-          NETWORK: ${{ github.event.inputs.network }}
         run: |
           echo "🚀 CORE Phase 1: Math Libraries"
           echo "🌐 Network: ${{ github.event.inputs.network }}"
