@@ -1,15 +1,14 @@
 {
-  "network": "sepolia",
-  "deployer": "0xdc8b592Cc6b7154038618A2F9128C1bfe05033E1",
-  "timestamp": "2025-10-12T18:30:00.000Z",
-  "phase": "production",
-  "status": "PROTOCOL_FULLY_OPERATIONAL",
+  "network": "neox-testnet",
+  "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
+  "timestamp": "2025-11-25T13:09:23.844Z",
+  "phase": "core-1-completed",
   "libraries": {
-    "WadRayMath": "0x69b1F858c5aD951260709455a5Ba0E25f3E8365c",
-    "PercentageMath": "0x11d51060b907CB77bDC85C76141cC37C32f03565",
-    "MathUtils": "0x099e17b443F507649263FEE7Aa83B2DaEe71Ae53",
-    "Errors": "0x22C3Ae78889b86e7DA9CE065793A181A28D85C20",
-    "DataTypes": "0x8612Ab7ecDbDf523496705C2d7548F2a90721962",
+    "WadRayMath": "0x25dC44167C76Ffb8cC26a7E6f3bE94CD8c482bde",
+    "PercentageMath": "0x10d0969c67A1A1C8EeCb8aabd8691847BB8a3AD8",
+    "MathUtils": "0x29A5A6Fdd890365EcF62A7fbCFDe2Dd55c016984",
+    "Errors": "0xb4817f5C3A52040CB42ddE71a8eE7C2a1eD26d67",
+    "DataTypes": "0xBd67937f665a22ffd8bd6E68f5be1716a9eBC23a",
     "IsolationModeLogic": "0x898562215dB699cb3965e32bc26CFe47Fa4dE7Db",
     "SupplyLogic": "0x1E35F6Dd9676F2208A3048C50b7dF7671dD4D30F",
     "BorrowLogic": "0x549896F4486C018d6774E6be7b29500e3975936e",
@@ -32,44 +31,5 @@
     "USDT": "0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0",
     "wA7A5": "0x18fb744Eb960480179006E3391293c77bB6f8De6",
     "WBTC": "0x29f2D40B0605204364af54EC677bD022dA425d03"
-  },
-  "priceOracles": {
-    "USDT_SimplePriceOracle": "0x5b414Fe383DA8e2321D890B17562ab4ed63aFC92",
-    "wA7A5_SimplePriceOracle": "0x20f6b76922a5Be318a3d7faF3B0F2A9AAA678d58",
-    "WBTC_SimplePriceOracle": "0x17625F461b2f0610b37E96D9bc978Ad1317e4197"
-  },
-  "reserves": {
-    "USDT": {
-      "underlyingAsset": "0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0",
-      "aToken": "0x3E48331829479C46e583b79A2D03bCEAAc3d0051",
-      "variableDebtToken": "0x86a389a826083E12f56F3c40dd92396C40943a3B",
-      "interestRateStrategy": "0x4438c9B0D2bC0eF81F1a0b0485B742c8E0833d2F",
-      "priceOracle": "0x5b414Fe383DA8e2321D890B17562ab4ed63aFC92",
-      "reserveId": 0,
-      "baseRate": "4%",
-      "slope1": "4.5%",
-      "slope2": "60%",
-      "optimalUsageRatio": "80%"
-    },
-    "wA7A5": {
-      "underlyingAsset": "0x18fb744Eb960480179006E3391293c77bB6f8De6",
-      "aToken": "0xf5Ff32678389CfC846F13A7F9034C94338445aB9",
-      "variableDebtToken": "0x9c87Db9324f304839DeB156C648D594e6929703B",
-      "interestRateStrategy": "0x4438c9B0D2bC0eF81F1a0b0485B742c8E0833d2F",
-      "priceOracle": "0x20f6b76922a5Be318a3d7faF3B0F2A9AAA678d58",
-      "reserveId": 1,
-      "baseRate": "8%",
-      "slope1": "8%",
-      "slope2": "120%",
-      "optimalUsageRatio": "70%"
-    },
-    "WBTC": {
-      "underlyingAsset": "0x29f2D40B0605204364af54EC677bD022dA425d03",
-      "aToken": "0xeb39b50930C20b9CB6e90421c484555D51d267E5",
-      "variableDebtToken": "0xc815ccfF640ac1eD0ebBD11c5F90f61D361ac3b9",
-      "interestRateStrategy": "0x4438c9B0D2bC0eF81F1a0b0485B742c8E0833d2F",
-      "priceOracle": "0x17625F461b2f0610b37E96D9bc978Ad1317e4197",
-      "reserveId": 2
-    }
   }
 }
