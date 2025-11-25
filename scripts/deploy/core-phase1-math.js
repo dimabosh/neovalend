@@ -164,77 +164,45 @@ async function deployCorePhase1() {
                 if (isNeoX) {
                     console.log(`   📝 Verifying on Blockscout...`);
 
-                    const baseUrl = network === 'neox-mainnet'
-                        ? 'https://xexplorer.neo.org'
-                        : 'https://xt4scan.ngd.network';
+                    // URL должен заканчиваться на /api/ согласно документации Blockscout
+                    const verifierUrl = network === 'neox-mainnet'
+                        ? 'https://xexplorer.neo.org/api/'
+                        : 'https://xt4scan.ngd.network/api/';
 
                     try {
-                        // Используем flattened source code - более надёжный метод
-                        const flattenCmd = `forge flatten "${libConfig.path}"`;
-                        const flattenedSource = execSync(flattenCmd, {
+                        // Команда согласно документации Blockscout для Foundry
+                        const verifyCommand = `forge verify-contract \
+                            --rpc-url ${process.env.RPC_URL_SEPOLIA} \
+                            ${contractAddress} \
+                            "${contractForFoundry}" \
+                            --verifier blockscout \
+                            --verifier-url ${verifierUrl} \
+                            --watch`;
+
+                        const verifyOutput = execSync(verifyCommand, {
                             stdio: 'pipe',
                             encoding: 'utf8',
-                            maxBuffer: 50 * 1024 * 1024
+                            timeout: 120000
                         });
 
-                        // Отправляем через REST API v2 - flattened-code endpoint
-                        const verifyUrl = `${baseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/flattened-code`;
+                        console.log(`   📥 Output: ${verifyOutput.substring(0, 100)}`);
 
-                        // Сохраняем source во временный файл
-                        const tmpFile = `/tmp/verify_${contractAddress}.sol`;
-                        fs.writeFileSync(tmpFile, flattenedSource);
-
-                        // POST запрос с flattened source
-                        const curlCmd = `curl -s -L -X POST "${verifyUrl}" \
-                            --form "compiler_version=v0.8.27+commit.40a35a09" \
-                            --form "source_code=<${tmpFile}" \
-                            --form "contract_name=${libConfig.name}" \
-                            --form "is_optimization_enabled=true" \
-                            --form "optimization_runs=200" \
-                            --form "evm_version=shanghai" \
-                            --form "autodetect_constructor_args=true" \
-                            --form "license_type=mit"`;
-
-                        const curlOutput = execSync(curlCmd, {
-                            stdio: 'pipe',
-                            encoding: 'utf8',
-                            timeout: 60000
-                        });
-
-                        // Удаляем временный файл
-                        fs.unlinkSync(tmpFile);
-
-                        console.log(`   📥 Response: ${curlOutput.substring(0, 150)}`);
-
-                        let response;
-                        try {
-                            response = JSON.parse(curlOutput);
-                        } catch (e) {
-                            response = {};
-                        }
-
-                        if (response.message === 'Smart-contract verification started' || response.status === 'success') {
-                            console.log(`   ⏳ Verification started, waiting...`);
-                            await new Promise(resolve => setTimeout(resolve, 15000));
-
-                            // Проверяем статус
-                            const statusCmd = `curl -s "${baseUrl}/api/v2/smart-contracts/${contractAddress}"`;
-                            const statusOutput = execSync(statusCmd, { encoding: 'utf8' });
-                            const status = JSON.parse(statusOutput);
-
-                            if (status.is_verified) {
-                                console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
-                            } else {
-                                console.log(`✅ ${libConfig.name}: ${contractAddress} (pending)`);
-                            }
-                        } else if (response.is_verified) {
+                        if (verifyOutput.includes('Successfully') || verifyOutput.includes('verified')) {
                             console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
                         } else {
                             console.log(`✅ ${libConfig.name}: ${contractAddress} (submitted)`);
                         }
                     } catch (verifyError) {
-                        console.log(`✅ ${libConfig.name}: ${contractAddress} (verify error)`);
-                        console.log(`   ⚠️ ${verifyError.message.substring(0, 100)}`);
+                        const stderr = verifyError.stderr ? verifyError.stderr.toString() : '';
+                        const stdout = verifyError.stdout ? verifyError.stdout.toString() : '';
+                        const output = stderr || stdout || verifyError.message;
+
+                        if (output.includes('already verified') || output.includes('Already Verified')) {
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
+                        } else {
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verification pending)`);
+                            console.log(`   ⚠️ ${output.substring(0, 120)}`);
+                        }
                     }
                 } else {
                     console.log(`✅ ${libConfig.name}: ${contractAddress}`);
