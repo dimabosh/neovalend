@@ -121,10 +121,15 @@ async function deployCorePhase1() {
                 foundryOutput = execSync(foundryCommand, {
                     stdio: 'pipe',
                     encoding: 'utf8',
-                    maxBuffer: 10 * 1024 * 1024
+                    maxBuffer: 10 * 1024 * 1024,
+                    timeout: 180000  // 3 минуты для деплоя + верификации
                 });
+                // Показываем output для диагностики верификации
+                console.log(`   📥 ${foundryOutput.replace(/\n/g, ' ').substring(0, 200)}`);
             } catch (execError) {
                 foundryOutput = execError.stdout ? execError.stdout.toString() : '';
+                const stderr = execError.stderr ? execError.stderr.toString() : '';
+                console.log(`   ⚠️ ${(stderr || foundryOutput).replace(/\n/g, ' ').substring(0, 200)}`);
             }
 
             // Парсим адрес из JSON
