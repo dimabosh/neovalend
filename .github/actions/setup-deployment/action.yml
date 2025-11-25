@@ -1,0 +1,53 @@
+name: 'Setup Deployment Environment'
+description: 'Setup Node.js, Solidity compiler, and dependencies for contract deployment'
+
+inputs:
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+  solc-version:
+    description: 'Solidity compiler version'
+    required: false
+    default: '0.8.10'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      shell: bash
+      run: |
+        npm install
+        npm install ethers@6 solc@${{ inputs.solc-version }}
+        npm install @openzeppelin/contracts@4.9.0
+        npm install hardhat @nomicfoundation/hardhat-toolbox
+        
+    - name: Setup Foundry
+      uses: foundry-rs/foundry-toolchain@v1
+      with:
+        version: nightly
+        
+    - name: Configure remappings
+      shell: bash
+      run: |
+        cat > foundry.toml << 'EOF'
+        [profile.default]
+        src = "contracts"
+        out = "out"
+        libs = ["node_modules", "lib"]
+        remappings = [
+          "@openzeppelin/=node_modules/@openzeppelin/",
+          "@aave/=aave-v3-contracts/src/",
+          "aave-v3-core/=aave-v3-contracts/src/",
+          "aave-v3-periphery/=aave-v3-contracts/src/"
+        ]
+        solc_version = "${{ inputs.solc-version }}"
+        optimizer = true
+        optimizer_runs = 100000
+        EOF

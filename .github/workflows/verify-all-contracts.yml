@@ -1,0 +1,180 @@
+name: Verify All Contracts
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'Network to verify on'
+        required: true
+        default: 'sepolia'
+        type: choice
+        options:
+          - sepolia
+          - mainnet
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Foundry
+      uses: foundry-rs/foundry-toolchain@v1
+      with:
+        version: nightly
+
+    - name: Verify all unverified contracts
+      env:
+        ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        NETWORK: ${{ github.event.inputs.network }}
+      run: |
+        echo "🔍 Verifying all contracts on $NETWORK"
+
+        # Install dependencies
+        npm install ethers@6
+
+        # Create verification script
+        cat > verify-all.js << 'EOF'
+        const fs = require('fs');
+        const { execSync } = require('child_process');
+
+        async function verifyAll() {
+          const deployments = JSON.parse(fs.readFileSync('deployments/all-contracts.json'));
+          const network = process.env.NETWORK;
+
+          console.log('📋 Loaded deployments:', Object.keys(deployments.contracts || {}).length, 'contracts');
+          console.log('📋 Loaded libraries:', Object.keys(deployments.libraries || {}).length, 'libraries');
+
+          const verificationQueue = [];
+
+          // Contracts to verify with their constructor args
+          const contractsToVerify = {
+            'PoolAddressesProvider': {
+              address: deployments.contracts.PoolAddressesProvider,
+              contract: 'contracts/aave-v3-origin/src/contracts/protocol/configuration/PoolAddressesProvider.sol:PoolAddressesProvider',
+              constructorArgs: `$(cast abi-encode "constructor(string,address)" "Neovalend" "${deployments.deployer}")`
+            },
+            'ACLManager': {
+              address: deployments.contracts.ACLManager,
+              contract: 'contracts/aave-v3-origin/src/contracts/protocol/configuration/ACLManager.sol:ACLManager',
+              constructorArgs: `$(cast abi-encode "constructor(address)" "${deployments.contracts.PoolAddressesProvider}")`
+            },
+            'AaveOracle': {
+              address: deployments.contracts.AaveOracle,
+              contract: 'contracts/aave-v3-origin/src/contracts/misc/AaveOracle.sol:AaveOracle',
+              constructorArgs: `$(cast abi-encode "constructor(address,address[],address[],address,address,uint256)" "${deployments.contracts.PoolAddressesProvider}" "[]" "[]" "0x0000000000000000000000000000000000000000" "0x0000000000000000000000000000000000000000" "100000000")`
+            },
+            'PoolConfigurator': {
+              address: deployments.contracts.PoolConfigurator,
+              contract: 'contracts/aave-v3-origin/src/contracts/protocol/pool/PoolConfigurator.sol:PoolConfigurator',
+              constructorArgs: `$(cast abi-encode "constructor(address)" "${deployments.contracts.PoolAddressesProvider}")`,
+              libraries: `contracts/aave-v3-origin/src/contracts/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:${deployments.libraries.ConfiguratorLogic}`
+            },
+            'AaveProtocolDataProvider': {
+              address: deployments.contracts.AaveProtocolDataProvider,
+              contract: 'contracts/aave-v3-origin/src/contracts/misc/AaveProtocolDataProvider.sol:AaveProtocolDataProvider',
+              constructorArgs: `$(cast abi-encode "constructor(address)" "${deployments.contracts.PoolAddressesProvider}")`
+            }
+          };
+
+          console.log('\n🚀 Starting verification process...\n');
+
+          for (const [name, config] of Object.entries(contractsToVerify)) {
+            if (!config.address || config.address === '0x0000000000000000000000000000000000000000') {
+              console.log(`⏭️  Skipping ${name} (not deployed)`);
+              continue;
+            }
+
+            console.log(`\n📝 Verifying ${name} at ${config.address}...`);
+
+            let cmd = `forge verify-contract ${config.address} ${config.contract} --constructor-args ${config.constructorArgs}`;
+
+            if (config.libraries) {
+              cmd += ` --libraries "${config.libraries}"`;
+            }
+
+            cmd += ` --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --chain ${network} --watch`;
+
+            try {
+              console.log(`Running: ${cmd.substring(0, 150)}...`);
+              const result = execSync(cmd, { encoding: 'utf8', stdio: 'pipe' });
+              console.log(`✅ ${name} verified successfully`);
+              console.log(result.substring(0, 200));
+            } catch (error) {
+              const errMsg = error.message || error.toString();
+              if (errMsg.includes('already verified') || errMsg.includes('Already Verified')) {
+                console.log(`✅ ${name} already verified`);
+              } else {
+                console.log(`⚠️  ${name} verification failed: ${errMsg.substring(0, 200)}`);
+              }
+            }
+
+            // Wait between verifications to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+
+          console.log('\n🎉 Verification process completed!');
+        }
+
+        verifyAll().catch(console.error);
+        EOF
+
+        node verify-all.js
+
+    - name: Generate verification report
+      run: |
+        echo "📊 Generating verification report..."
+
+        cat > generate-report.js << 'EOF'
+        const fs = require('fs');
+
+        const deployments = JSON.parse(fs.readFileSync('deployments/all-contracts.json'));
+        const network = process.env.NETWORK || 'sepolia';
+
+        let report = `# Contract Verification Report\n\n`;
+        report += `**Network:** ${network}\n`;
+        report += `**Date:** ${new Date().toISOString()}\n\n`;
+
+        report += `## Verified Contracts\n\n`;
+        report += `| Contract | Address | Explorer |\n`;
+        report += `|----------|---------|----------|\n`;
+
+        const explorerBase = network === 'sepolia' ? 'https://sepolia.etherscan.io' : 'https://etherscan.io';
+
+        for (const [name, address] of Object.entries(deployments.contracts || {})) {
+          if (address && address.startsWith('0x')) {
+            report += `| ${name} | \`${address}\` | [View](${explorerBase}/address/${address}#code) |\n`;
+          }
+        }
+
+        report += `\n## Libraries\n\n`;
+        report += `| Library | Address |\n`;
+        report += `|---------|----------|\n`;
+
+        for (const [name, address] of Object.entries(deployments.libraries || {})) {
+          if (address && address.startsWith('0x')) {
+            report += `| ${name} | \`${address}\` |\n`;
+          }
+        }
+
+        fs.writeFileSync('VERIFICATION_REPORT.md', report);
+        console.log('✅ Report saved to VERIFICATION_REPORT.md');
+        EOF
+
+        NETWORK=${{ github.event.inputs.network }} node generate-report.js
+
+        cat VERIFICATION_REPORT.md
+
+    - name: Upload verification report
+      uses: actions/upload-artifact@v4
+      with:
+        name: verification-report-${{ github.event.inputs.network }}
+        path: VERIFICATION_REPORT.md
+        retention-days: 90

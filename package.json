@@ -1,0 +1,56 @@
+{
+  "name": "neovalend-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "compile": "hardhat compile",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
+    "deploy:mainnet": "hardhat run scripts/deploy.ts --network mainnet",
+    "deploy:simple": "hardhat run scripts/deploy-simple.ts --network sepolia",
+    "verify": "hardhat verify --network sepolia"
+  },
+  "dependencies": {
+    "next": "14.2.7",
+    "react": "^18",
+    "react-dom": "^18",
+    "@rainbow-me/rainbowkit": "^2.1.0",
+    "wagmi": "^2.12.0",
+    "viem": "^2.19.0",
+    "@tanstack/react-query": "^5.51.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-separator": "^1.0.3",
+    "@radix-ui/react-slot": "^1.0.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.427.0",
+    "tailwind-merge": "^2.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "sonner": "^1.5.0",
+    "@openzeppelin/contracts": "5.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.7",
+    "hardhat": "^2.19.0",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "hardhat-gas-reporter": "^1.0.9",
+    "solidity-coverage": "^0.8.5"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}

@@ -1,0 +1,10 @@
+contracts/**
+scripts/**
+test/**
+hardhat.config.ts
+aave-fork/**
+deployments/**
+package-contracts.json
+cache/**
+artifacts/**
+*.log

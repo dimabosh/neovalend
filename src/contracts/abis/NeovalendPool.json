@@ -1,0 +1,98 @@
+[
+  {
+    "inputs": [
+      {"internalType": "address", "name": "_usdt", "type": "address"},
+      {"internalType": "address", "name": "_a7a5", "type": "address"}
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
+      {"indexed": true, "internalType": "address", "name": "token", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "Deposit",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
+      {"indexed": true, "internalType": "address", "name": "token", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "Withdraw",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "depositUSDT",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "depositA7A5",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "withdrawUSDT",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "withdrawA7A5",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "user", "type": "address"}
+    ],
+    "name": "getUserDepositBalance",
+    "outputs": [
+      {"internalType": "uint256", "name": "usdtBalance", "type": "uint256"},
+      {"internalType": "uint256", "name": "a7a5Balance", "type": "uint256"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getPoolStats",
+    "outputs": [
+      {
+        "components": [
+          {"internalType": "uint256", "name": "totalUsdtDeposits", "type": "uint256"},
+          {"internalType": "uint256", "name": "totalA7a5Deposits", "type": "uint256"},
+          {"internalType": "uint256", "name": "totalUsdtBorrows", "type": "uint256"},
+          {"internalType": "uint256", "name": "totalA7a5Borrows", "type": "uint256"},
+          {"internalType": "uint256", "name": "lastRebaseTimestamp", "type": "uint256"}
+        ],
+        "internalType": "struct NeovalendPool.PoolStats",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

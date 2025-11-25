@@ -1,0 +1,363 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.10;
+
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+
+interface IRebasingToken {
+    function wrap(uint256 amount) external returns (uint256 wrappedAmount);
+    function unwrap(uint256 wrappedAmount) external returns (uint256 amount);
+    function getWrapRatio() external view returns (uint256);
+}
+
+interface IPointsSystem {
+    function awardWrapPoints(address user, uint256 points) external;
+}
+
+/**
+ * @title WrapUnwrapManager
+ * @author RubleN Team
+ * @notice Manages wrapping and unwrapping of A7A5 tokens with rebase functionality
+ * @dev Handles conversion between regular A7A5 and rebase A7A5 with fees and points
+ */
+contract WrapUnwrapManager is Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
+    // ============ State Variables ============
+
+    /// @notice Regular A7A5 token
+    IERC20 public immutable A7A5_TOKEN;
+    
+    /// @notice Rebasing A7A5 token
+    IRebasingToken public immutable REBASING_A7A5;
+    
+    /// @notice Protocol fee (0.1% = 100 basis points)
+    uint256 public constant PROTOCOL_FEE = 100;
+    
+    /// @notice Basis points denominator
+    uint256 public constant BASIS_POINTS = 10000;
+    
+    /// @notice Fee recipient
+    address public feeRecipient;
+    
+    /// @notice Points system contract
+    address public pointsSystem;
+    
+    /// @notice Daily wrap/unwrap limits per user
+    mapping(address => uint256) public dailyWrapAmount;
+    mapping(address => uint256) public dailyUnwrapAmount;
+    mapping(address => uint256) public lastActivityDay;
+    
+    /// @notice Maximum daily wrap/unwrap limit (1M A7A5)
+    uint256 public constant DAILY_LIMIT = 1_000_000e18;
+
+    // ============ Events ============
+
+    event TokensWrapped(
+        address indexed user,
+        uint256 a7a5Amount,
+        uint256 wrappedAmount,
+        uint256 fee
+    );
+    
+    event TokensUnwrapped(
+        address indexed user,
+        uint256 wrappedAmount,
+        uint256 a7a5Amount,
+        uint256 fee
+    );
+    
+    event FeeRecipientUpdated(address indexed oldRecipient, address indexed newRecipient);
+    event PointsSystemUpdated(address indexed oldPoints, address indexed newPoints);
+    event WrapPointsAwarded(address indexed user, uint256 wrapAmount, uint256 points);
+
+    // ============ Constructor ============
+
+    constructor(
+        address _a7a5Token,
+        address _rebasingA7A5,
+        address _feeRecipient
+    ) {
+        A7A5_TOKEN = IERC20(_a7a5Token);
+        REBASING_A7A5 = IRebasingToken(_rebasingA7A5);
+        feeRecipient = _feeRecipient;
+    }
+
+    // ============ External Functions ============
+
+    /**
+     * @notice Wrap regular A7A5 tokens to rebasing A7A5
+     * @param amount Amount of A7A5 tokens to wrap
+     * @return wrappedAmount Amount of rebasing A7A5 received
+     */
+    function wrapA7A5(uint256 amount) external nonReentrant returns (uint256 wrappedAmount) {
+        require(amount > 0, "WrapManager: Invalid amount");
+        
+        // Check daily limits
+        _checkAndUpdateDailyLimit(msg.sender, amount, true);
+        
+        // Calculate protocol fee
+        uint256 protocolFee = (amount * PROTOCOL_FEE) / BASIS_POINTS;
+        uint256 wrapAmount = amount - protocolFee;
+
+        // Transfer A7A5 from user
+        A7A5_TOKEN.safeTransferFrom(msg.sender, address(this), amount);
+        
+        // Send protocol fee to fee recipient
+        if (protocolFee > 0) {
+            A7A5_TOKEN.safeTransfer(feeRecipient, protocolFee);
+        }
+
+        // Approve rebasing contract to spend A7A5
+        A7A5_TOKEN.safeApprove(address(REBASING_A7A5), wrapAmount);
+
+        // Execute wrap
+        wrappedAmount = REBASING_A7A5.wrap(wrapAmount);
+
+        // Transfer wrapped tokens to user
+        IERC20(address(REBASING_A7A5)).safeTransfer(msg.sender, wrappedAmount);
+
+        // Award points
+        _awardWrapPoints(msg.sender, amount);
+
+        emit TokensWrapped(msg.sender, amount, wrappedAmount, protocolFee);
+    }
+
+    /**
+     * @notice Unwrap rebasing A7A5 tokens to regular A7A5
+     * @param wrappedAmount Amount of rebasing A7A5 tokens to unwrap
+     * @return amount Amount of regular A7A5 received
+     */
+    function unwrapA7A5(uint256 wrappedAmount) external nonReentrant returns (uint256 amount) {
+        require(wrappedAmount > 0, "WrapManager: Invalid amount");
+
+        // Transfer wrapped tokens from user
+        IERC20(address(REBASING_A7A5)).safeTransferFrom(msg.sender, address(this), wrappedAmount);
+
+        // Execute unwrap
+        uint256 unwrappedAmount = REBASING_A7A5.unwrap(wrappedAmount);
+        
+        // Check daily limits (using unwrapped amount)
+        _checkAndUpdateDailyLimit(msg.sender, unwrappedAmount, false);
+
+        // Calculate protocol fee
+        uint256 protocolFee = (unwrappedAmount * PROTOCOL_FEE) / BASIS_POINTS;
+        amount = unwrappedAmount - protocolFee;
+
+        // Send A7A5 to user (minus fee)
+        A7A5_TOKEN.safeTransfer(msg.sender, amount);
+
+        // Send protocol fee to fee recipient
+        if (protocolFee > 0) {
+            A7A5_TOKEN.safeTransfer(feeRecipient, protocolFee);
+        }
+
+        // Award points
+        _awardWrapPoints(msg.sender, unwrappedAmount);
+
+        emit TokensUnwrapped(msg.sender, wrappedAmount, amount, protocolFee);
+    }
+
+    /**
+     * @notice Get wrap quote (A7A5 → Rebasing A7A5)
+     * @param amount Amount of A7A5 to wrap
+     * @return wrappedAmount Expected rebasing A7A5 amount
+     * @return protocolFee Protocol fee in A7A5
+     */
+    function getWrapQuote(uint256 amount) external view returns (uint256 wrappedAmount, uint256 protocolFee) {
+        require(amount > 0, "WrapManager: Invalid amount");
+
+        protocolFee = (amount * PROTOCOL_FEE) / BASIS_POINTS;
+        uint256 wrapAmount = amount - protocolFee;
+        
+        uint256 wrapRatio = REBASING_A7A5.getWrapRatio();
+        wrappedAmount = (wrapAmount * wrapRatio) / 1e18;
+    }
+
+    /**
+     * @notice Get unwrap quote (Rebasing A7A5 → A7A5)
+     * @param wrappedAmount Amount of rebasing A7A5 to unwrap
+     * @return amount Expected A7A5 amount (after fee)
+     * @return protocolFee Protocol fee in A7A5
+     */
+    function getUnwrapQuote(uint256 wrappedAmount) external view returns (uint256 amount, uint256 protocolFee) {
+        require(wrappedAmount > 0, "WrapManager: Invalid amount");
+
+        uint256 wrapRatio = REBASING_A7A5.getWrapRatio();
+        uint256 unwrappedAmount = (wrappedAmount * 1e18) / wrapRatio;
+        
+        protocolFee = (unwrappedAmount * PROTOCOL_FEE) / BASIS_POINTS;
+        amount = unwrappedAmount - protocolFee;
+    }
+
+    /**
+     * @notice Get user's daily usage
+     * @param user User address
+     * @return wrapUsed Wrap amount used today
+     * @return unwrapUsed Unwrap amount used today
+     * @return wrapAvailable Remaining wrap limit
+     * @return unwrapAvailable Remaining unwrap limit
+     */
+    function getDailyUsage(address user) external view returns (
+        uint256 wrapUsed,
+        uint256 unwrapUsed,
+        uint256 wrapAvailable,
+        uint256 unwrapAvailable
+    ) {
+        uint256 currentDay = block.timestamp / 1 days;
+        
+        if (lastActivityDay[user] == currentDay) {
+            wrapUsed = dailyWrapAmount[user];
+            unwrapUsed = dailyUnwrapAmount[user];
+        } else {
+            wrapUsed = 0;
+            unwrapUsed = 0;
+        }
+        
+        wrapAvailable = DAILY_LIMIT > wrapUsed ? DAILY_LIMIT - wrapUsed : 0;
+        unwrapAvailable = DAILY_LIMIT > unwrapUsed ? DAILY_LIMIT - unwrapUsed : 0;
+    }
+
+    // ============ Admin Functions ============
+
+    /**
+     * @notice Update fee recipient
+     * @param newRecipient New fee recipient address
+     */
+    function updateFeeRecipient(address newRecipient) external onlyOwner {
+        require(newRecipient != address(0), "WrapManager: Invalid address");
+        
+        address oldRecipient = feeRecipient;
+        feeRecipient = newRecipient;
+        
+        emit FeeRecipientUpdated(oldRecipient, newRecipient);
+    }
+
+    /**
+     * @notice Update points system contract
+     * @param newPointsSystem New points system address
+     */
+    function updatePointsSystem(address newPointsSystem) external onlyOwner {
+        address oldPoints = pointsSystem;
+        pointsSystem = newPointsSystem;
+        
+        emit PointsSystemUpdated(oldPoints, newPointsSystem);
+    }
+
+    /**
+     * @notice Emergency token withdrawal
+     * @param token Token to withdraw
+     * @param amount Amount to withdraw
+     */
+    function emergencyWithdraw(address token, uint256 amount) external onlyOwner {
+        IERC20(token).safeTransfer(owner(), amount);
+    }
+
+    // ============ Internal Functions ============
+
+    /**
+     * @notice Check and update daily limits
+     * @param user User address
+     * @param amount Operation amount
+     * @param isWrap True for wrap operation, false for unwrap
+     */
+    function _checkAndUpdateDailyLimit(address user, uint256 amount, bool isWrap) internal {
+        uint256 currentDay = block.timestamp / 1 days;
+        
+        // Reset daily limits if it's a new day
+        if (lastActivityDay[user] != currentDay) {
+            dailyWrapAmount[user] = 0;
+            dailyUnwrapAmount[user] = 0;
+            lastActivityDay[user] = currentDay;
+        }
+        
+        if (isWrap) {
+            require(
+                dailyWrapAmount[user] + amount <= DAILY_LIMIT,
+                "WrapManager: Daily wrap limit exceeded"
+            );
+            dailyWrapAmount[user] += amount;
+        } else {
+            require(
+                dailyUnwrapAmount[user] + amount <= DAILY_LIMIT,
+                "WrapManager: Daily unwrap limit exceeded"
+            );
+            dailyUnwrapAmount[user] += amount;
+        }
+    }
+
+    /**
+     * @notice Award points for wrap/unwrap operations
+     * @param user User address
+     * @param amount Operation amount in A7A5
+     */
+    function _awardWrapPoints(address user, uint256 amount) internal {
+        if (pointsSystem != address(0)) {
+            // Award 0.1 point per $100 worth of operation
+            // Assuming A7A5 ≈ $1 for simplicity
+            uint256 points = amount / 100e18;
+            
+            if (points > 0) {
+                try IPointsSystem(pointsSystem).awardWrapPoints(user, points) {
+                    emit WrapPointsAwarded(user, amount, points);
+                } catch {
+                    // Points system failed, continue without reverting
+                }
+            }
+        }
+    }
+
+    // ============ View Functions ============
+
+    /**
+     * @notice Get contract information
+     * @return a7a5Balance Contract A7A5 balance
+     * @return rebasingBalance Contract rebasing A7A5 balance
+     * @return currentWrapRatio Current wrap ratio
+     * @return feeRecipientAddress Current fee recipient
+     */
+    function getContractInfo() external view returns (
+        uint256 a7a5Balance,
+        uint256 rebasingBalance,
+        uint256 currentWrapRatio,
+        address feeRecipientAddress
+    ) {
+        a7a5Balance = A7A5_TOKEN.balanceOf(address(this));
+        rebasingBalance = IERC20(address(REBASING_A7A5)).balanceOf(address(this));
+        currentWrapRatio = REBASING_A7A5.getWrapRatio();
+        feeRecipientAddress = feeRecipient;
+    }
+
+    /**
+     * @notice Check if user can perform operation
+     * @param user User address
+     * @param amount Operation amount
+     * @param isWrap True for wrap, false for unwrap
+     * @return canPerform Whether operation is allowed
+     * @return reason Reason if not allowed
+     */
+    function canPerformOperation(address user, uint256 amount, bool isWrap) 
+        external 
+        view 
+        returns (bool canPerform, string memory reason) 
+    {
+        if (amount == 0) {
+            return (false, "Invalid amount");
+        }
+        
+        uint256 currentDay = block.timestamp / 1 days;
+        uint256 usedAmount = 0;
+        
+        if (lastActivityDay[user] == currentDay) {
+            usedAmount = isWrap ? dailyWrapAmount[user] : dailyUnwrapAmount[user];
+        }
+        
+        if (usedAmount + amount > DAILY_LIMIT) {
+            return (false, "Daily limit exceeded");
+        }
+        
+        return (true, "");
+    }
+}
