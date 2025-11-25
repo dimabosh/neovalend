@@ -91,7 +91,18 @@ async function deployConfiguratorAndProxy() {
         console.log(`📋 Contract: ${contractPath}`);
         console.log(`📋 Library: ConfiguratorLogic at ${configuratorLogicAddress}\n`);
 
-        const deployCommand = `forge create "${contractPath}" --libraries ${libraryPath}:ConfiguratorLogic:${configuratorLogicAddress} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27`;
+        const network = process.env.NETWORK || 'sepolia';
+        const isNeoX = network.includes('neox');
+
+        let deployCommand;
+        if (isNeoX) {
+            // NEO X: без верификации Etherscan
+            deployCommand = `forge create "${contractPath}" --libraries ${libraryPath}:ConfiguratorLogic:${configuratorLogicAddress} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27`;
+            console.log(`🌐 Deploying to NEO X (${network}) - verification skipped`);
+        } else {
+            // Ethereum networks: с верификацией
+            deployCommand = `forge create "${contractPath}" --libraries ${libraryPath}:ConfiguratorLogic:${configuratorLogicAddress} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27`;
+        }
 
         console.log('🔧 Deploying PoolConfiguratorInstance...');
 

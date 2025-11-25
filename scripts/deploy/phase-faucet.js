@@ -21,7 +21,7 @@ async function deployFaucet() {
 
     // Загрузить deployments
     let deployments = {
-        network: 'sepolia',
+        network: process.env.NETWORK || 'sepolia',
         deployer: wallet.address,
         timestamp: new Date().toISOString(),
         phase: 'faucet',

@@ -26,8 +26,9 @@ async function deployCorePhase1() {
     console.log('💰 Balance:', ethers.formatEther(balance), 'ETH');
     
     // Загрузить или создать deployments
+    const networkName = process.env.NETWORK || 'sepolia';
     let deployments = {
-        network: 'sepolia',
+        network: networkName,
         deployer: wallet.address,
         timestamp: new Date().toISOString(),
         phase: 'core-1',
@@ -111,8 +112,19 @@ async function deployCorePhase1() {
 
             // Деплой библиотеки с Solidity 0.8.27
             // ВАЖНО: trim() убирает лишние пробелы из API ключа
-            // --verify включен для автоматической верификации на Etherscan
-            const foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${apiKey} --broadcast --json --use 0.8.27`;
+            // --verify включен для автоматической верификации на Etherscan (отключено для NEO X)
+            const network = process.env.NETWORK || 'sepolia';
+            const isNeoX = network.includes('neox');
+
+            let foundryCommand;
+            if (isNeoX) {
+                // NEO X: без верификации Etherscan
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27`;
+                console.log(`🌐 Deploying to NEO X (${network}) - verification skipped`);
+            } else {
+                // Ethereum networks: с верификацией
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${apiKey} --broadcast --json --use 0.8.27`;
+            }
 
             console.log(`📋 Command: forge create "${contractForFoundry}"`);
             console.log(`🔧 Using Solidity 0.8.27 for Aave v3.5 compatibility`);

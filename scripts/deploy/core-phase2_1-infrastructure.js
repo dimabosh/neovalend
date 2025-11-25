@@ -133,7 +133,18 @@ async function deployCorePhase2_2() {
 
             // ✅ ПРАВИЛЬНЫЙ ПОРЯДОК флагов согласно CLAUDE.md Phase 2.1 Lesson #7
             // Базовая команда БЕЗ constructor args
-            let deployCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27`;
+            const network = process.env.NETWORK || 'sepolia';
+            const isNeoX = network.includes('neox');
+
+            let deployCommand;
+            if (isNeoX) {
+                // NEO X: без верификации Etherscan
+                deployCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27`;
+                console.log(`🌐 Deploying to NEO X (${network}) - verification skipped`);
+            } else {
+                // Ethereum networks: с верификацией
+                deployCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27`;
+            }
 
             // Добавить constructor args В КОНЦЕ (если есть)
             if (contractConfig.constructor && contractConfig.constructor.length > 0) {

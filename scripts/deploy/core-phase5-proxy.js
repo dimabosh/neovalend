@@ -22,7 +22,7 @@ async function deployCorePhase5() {
     
     // Загрузить или создать deployments
     let deployments = {
-        network: 'sepolia',
+        network: process.env.NETWORK || 'sepolia',
         deployer: wallet.address,
         timestamp: new Date().toISOString(),
         phase: 'core-5',

@@ -27,7 +27,7 @@ async function deployWA7A5Token() {
 
     // Load or create deployments file
     let deployments = {
-        network: 'sepolia',
+        network: process.env.NETWORK || 'sepolia',
         deployer: wallet.address,
         timestamp: new Date().toISOString(),
         libraries: {},

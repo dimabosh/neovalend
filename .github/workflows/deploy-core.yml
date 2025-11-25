@@ -36,9 +36,11 @@ on:
       network:
         description: 'Network to deploy to'
         required: true
-        default: 'sepolia'
+        default: 'neox-testnet'
         type: choice
         options:
+          - neox-testnet
+          - neox-mainnet
           - sepolia
           - mainnet
       force_redeploy:
@@ -53,6 +55,11 @@ on:
 env:
   SOLC_VERSION: '0.8.27'
   NODE_VERSION: '20'
+  # NEO X Network Configuration
+  NEOX_TESTNET_RPC: 'https://neoxt4seed1.ngd.network/'
+  NEOX_MAINNET_RPC: 'https://mainnet-1.rpc.banelabs.org/'
+  NEOX_TESTNET_CHAIN_ID: '12227332'
+  NEOX_MAINNET_CHAIN_ID: '47763'
 
 jobs:
   show-info:
@@ -104,12 +111,15 @@ jobs:
       - name: Deploy CORE Phase 1 - Math Libraries
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && env.NEOX_TESTNET_RPC || github.event.inputs.network == 'neox-mainnet' && env.NEOX_MAINNET_RPC || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
           FORCE_REDEPLOY: ${{ github.event.inputs.force_redeploy }}
+          NETWORK: ${{ github.event.inputs.network }}
+          NETWORK: ${{ github.event.inputs.network }}
         run: |
           echo "🚀 CORE Phase 1: Math Libraries"
+          echo "🌐 Network: ${{ github.event.inputs.network }}"
           echo "💰 Cost: ~$0.5 USD | 5 contracts"
           echo "📋 WadRayMath, PercentageMath, MathUtils, Errors, DataTypes"
           echo ""
@@ -152,10 +162,11 @@ jobs:
       - name: Deploy CORE Phase 2 - PoolAddressesProvider
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
           FORCE_REDEPLOY: ${{ github.event.inputs.force_redeploy }}
+          NETWORK: ${{ github.event.inputs.network }}
         run: |
           echo "🚀 CORE Phase 2: PoolAddressesProvider + ACL Admin"
           echo "💰 Cost: ~$0.1 USD | 1 contract"
@@ -200,10 +211,11 @@ jobs:
       - name: Deploy Phase 2.1 - Infrastructure
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
           FORCE_REDEPLOY: ${{ github.event.inputs.force_redeploy }}
+          NETWORK: ${{ github.event.inputs.network }}
         run: |
           echo "🚀 CORE Phase 2.1: ACLManager, Oracle, InterestRateStrategy"
           echo "💰 Cost: ~$0.7 USD | 3 contracts"
@@ -248,10 +260,11 @@ jobs:
       - name: Deploy CORE Phase 2.2 - Logic Libraries
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
           FORCE_REDEPLOY: ${{ github.event.inputs.force_redeploy }}
+          NETWORK: ${{ github.event.inputs.network }}
         run: |
           echo "🚀 CORE Phase 2.2: Logic Libraries"
           echo "💰 Cost: ~$2.0 USD | 8 libraries"
@@ -295,10 +308,11 @@ jobs:
       - name: Deploy CORE Phase 3 - Pool Implementation
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
           FORCE_REDEPLOY: ${{ github.event.inputs.force_redeploy }}
+          NETWORK: ${{ github.event.inputs.network }}
         run: |
           echo "🚀 CORE Phase 3: Pool Implementation (with Flash Loans!)"
           echo "💰 Cost: ~$1.2 USD | 3 contracts"
@@ -342,7 +356,7 @@ jobs:
       - name: Deploy PoolConfigurator Implementation + Create Proxy
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
         run: |
           echo "🚀 CORE Phase 3.1: PoolConfigurator Implementation + Proxy"
@@ -388,10 +402,11 @@ jobs:
       - name: Deploy CORE Phase 4 - Token Implementation
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
           FORCE_REDEPLOY: ${{ github.event.inputs.force_redeploy }}
+          NETWORK: ${{ github.event.inputs.network }}
         run: |
           echo "🚀 CORE Phase 4: Token Implementation"
           echo "💰 Cost: ~$0.4 USD | 2 contracts"
@@ -435,7 +450,7 @@ jobs:
       - name: Deploy wA7A5 Token (100 billion supply)
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
         run: |
@@ -484,7 +499,7 @@ jobs:
       - name: Deploy CORE Phase 5 - Proxy & Finalization
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
         run: |
@@ -526,7 +541,7 @@ jobs:
       - name: Grant Admin Roles
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
         run: |
           echo "🔐 CORE Phase 5.1: Grant Admin Roles"
           echo "💰 Cost: ~$0.05 USD | 2 transactions"
@@ -569,7 +584,7 @@ jobs:
       - name: Configure Protocol - CORE Phase 6
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
         run: |
           echo "🚀 CORE Phase 6: Protocol Configuration"
@@ -613,7 +628,7 @@ jobs:
       - name: Hotfix - Configure wA7A5 Collateral
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
         run: |
           echo "🔧 HOTFIX: Configure wA7A5 Collateral"
@@ -662,7 +677,7 @@ jobs:
       - name: Hotfix - Configure Oracle Price Sources
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
         run: |
@@ -718,7 +733,7 @@ jobs:
       - name: Hotfix V3 - Add WBTC + Fix USDT Collateral
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
         run: |
@@ -777,10 +792,11 @@ jobs:
       - name: Deploy Faucet Contract
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          RPC_URL_SEPOLIA: ${{ secrets.RPC_URL_SEPOLIA }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
           FORCE_REDEPLOY: ${{ github.event.inputs.force_redeploy }}
+          NETWORK: ${{ github.event.inputs.network }}
         run: |
           echo "🚰 Phase Faucet: Deploy Testnet Faucet Contract"
           echo "💰 Cost: ~$0.2 USD | 1 contract"

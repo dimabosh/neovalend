@@ -21,7 +21,7 @@ async function deployCorePhase4() {
     
     // Загрузить или создать deployments
     let deployments = {
-        network: 'sepolia',
+        network: process.env.NETWORK || 'sepolia',
         deployer: wallet.address,
         timestamp: new Date().toISOString(),
         phase: 'core-4',
@@ -171,8 +171,19 @@ async function deployCorePhase4() {
             });
             
             // Сборка команды с library linking и constructor args
-            let foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27${libraryFlags}`;
-            
+            const network = process.env.NETWORK || 'sepolia';
+            const isNeoX = network.includes('neox');
+
+            let foundryCommand;
+            if (isNeoX) {
+                // NEO X: без верификации Etherscan
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27${libraryFlags}`;
+                console.log(`🌐 Deploying to NEO X (${network}) - verification skipped`);
+            } else {
+                // Ethereum networks: с верификацией
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27${libraryFlags}`;
+            }
+
             if (constructorArgs.length > 0) {
                 foundryCommand += ` --constructor-args ${constructorArgs.join(' ')}`;
             }
