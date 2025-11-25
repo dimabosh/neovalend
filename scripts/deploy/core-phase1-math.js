@@ -169,8 +169,9 @@ async function deployCorePhase1() {
                             : 'https://xt4scan.ngd.network/api';
 
                         // Верификация с точными параметрами из foundry.toml
-                        // Библиотеки без constructor args - не указываем --constructor-args
-                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --watch`;
+                        // Для библиотек без constructor - НЕ указываем --constructor-args вообще
+                        // Blockscout сам определит что constructor args отсутствуют
+                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --guess-constructor-args --watch`;
 
                         const verifyOutput = execSync(verifyCommand, {
                             stdio: 'pipe',
