@@ -171,37 +171,45 @@ async function deployCorePhase1() {
 
                     try {
                         // Команда согласно документации Blockscout для Foundry
+                        // Увеличиваем retries для надёжности
                         const verifyCommand = `forge verify-contract \
                             --rpc-url ${process.env.RPC_URL_SEPOLIA} \
                             ${contractAddress} \
                             "${contractForFoundry}" \
                             --verifier blockscout \
                             --verifier-url ${verifierUrl} \
+                            --retries 5 \
+                            --delay 10 \
                             --watch`;
 
                         const verifyOutput = execSync(verifyCommand, {
                             stdio: 'pipe',
                             encoding: 'utf8',
-                            timeout: 120000
+                            timeout: 180000  // 3 минуты
                         });
 
-                        console.log(`   📥 Output: ${verifyOutput.substring(0, 100)}`);
+                        // Показываем полный output для диагностики
+                        console.log(`   📥 Output: ${verifyOutput.replace(/\n/g, ' ').substring(0, 150)}`);
 
-                        if (verifyOutput.includes('Successfully') || verifyOutput.includes('verified')) {
+                        if (verifyOutput.includes('Successfully') || verifyOutput.includes('Contract successfully verified')) {
                             console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
+                        } else if (verifyOutput.includes('already verified')) {
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
                         } else {
                             console.log(`✅ ${libConfig.name}: ${contractAddress} (submitted)`);
                         }
                     } catch (verifyError) {
                         const stderr = verifyError.stderr ? verifyError.stderr.toString() : '';
                         const stdout = verifyError.stdout ? verifyError.stdout.toString() : '';
-                        const output = stderr || stdout || verifyError.message;
+                        const output = (stderr + stdout) || verifyError.message;
+
+                        // Показываем полную ошибку
+                        console.log(`   ⚠️ Error: ${output.replace(/\n/g, ' ').substring(0, 200)}`);
 
                         if (output.includes('already verified') || output.includes('Already Verified')) {
                             console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
                         } else {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verification pending)`);
-                            console.log(`   ⚠️ ${output.substring(0, 120)}`);
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verification failed)`);
                         }
                     }
                 } else {
