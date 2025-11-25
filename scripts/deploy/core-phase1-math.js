@@ -206,8 +206,17 @@ async function deployCorePhase1() {
                         // Удаляем временный файл
                         fs.unlinkSync(tmpFile);
 
-                        const response = JSON.parse(curlOutput);
-                        if (response.message === 'Smart-contract verification started') {
+                        console.log(`   📥 API Response: ${curlOutput.substring(0, 200)}`);
+
+                        let response;
+                        try {
+                            response = JSON.parse(curlOutput);
+                        } catch (e) {
+                            console.log(`   ⚠️ Failed to parse response`);
+                            response = {};
+                        }
+
+                        if (response.message === 'Smart-contract verification started' || response.status === 'success') {
                             // Ждём завершения верификации
                             console.log(`   ⏳ Verification started, waiting...`);
                             await new Promise(resolve => setTimeout(resolve, 10000));
