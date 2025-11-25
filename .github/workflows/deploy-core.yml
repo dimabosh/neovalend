@@ -101,13 +101,12 @@ jobs:
           npm install
           npm install ethers@6 solc@${{ env.SOLC_VERSION }}
           npm install @openzeppelin/contracts@4.9.0
-          npm install @openzeppelin/contracts-upgradeable@4.3.2
-      
+
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-      
+
       - name: Deploy CORE Phase 1 - Math Libraries
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
