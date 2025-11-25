@@ -193,9 +193,10 @@ async function deployCorePhase1() {
                         fs.writeFileSync(tmpFile, standardJsonInput);
 
                         const curlCmd = `curl -s -X POST "${verifyUrl}" \
+                            -H "Content-Type: multipart/form-data" \
                             -F "compiler_version=v0.8.27+commit.40a35a09" \
                             -F "license_type=mit" \
-                            -F "files[0]=@${tmpFile};filename=input.json"`;
+                            -F "files=@${tmpFile};type=application/json"`;
 
                         const curlOutput = execSync(curlCmd, {
                             stdio: 'pipe',
