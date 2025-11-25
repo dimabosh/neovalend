@@ -118,12 +118,10 @@ async function deployCorePhase1() {
 
             let foundryCommand;
             if (isNeoX) {
-                // NEO X: верификация через Blockscout
-                const verifierUrl = network === 'neox-mainnet'
-                    ? 'https://xexplorer.neo.org/api'
-                    : 'https://xt4scan.ngd.network/api';
-                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --verifier blockscout --verifier-url ${verifierUrl} --broadcast --json --use 0.8.27`;
-                console.log(`🌐 Deploying to NEO X (${network}) - Blockscout verification`);
+                // NEO X: Deploy WITHOUT verification first (verify separately if needed)
+                // Using --legacy flag for non-EIP1559 compatible transaction format
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27 --legacy`;
+                console.log(`🌐 Deploying to NEO X (${network}) - No verification, legacy mode`);
             } else {
                 // Ethereum networks: верификация через Etherscan
                 foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${apiKey} --broadcast --json --use 0.8.27`;
