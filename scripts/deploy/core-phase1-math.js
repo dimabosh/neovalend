@@ -133,11 +133,22 @@ async function deployCorePhase1() {
             console.log(`🔧 Using Solidity 0.8.27 for Aave v3.5 compatibility`);
             console.log(`📝 Auto-verification enabled for Etherscan`);
             
+            // Сначала проверим компиляцию
+            console.log('🔨 Compiling contract first...');
+            try {
+                execSync(`forge build --use 0.8.27`, { stdio: 'inherit' });
+                console.log('✅ Compilation successful!');
+            } catch (buildError) {
+                console.error('❌ Compilation failed! Check errors above.');
+                process.exit(1);
+            }
+
             let foundryOutput;
             try {
                 foundryOutput = execSync(foundryCommand, {
                     stdio: 'pipe',
-                    encoding: 'utf8'
+                    encoding: 'utf8',
+                    maxBuffer: 10 * 1024 * 1024
                 });
                 console.log('✅ Deployment successful!');
             } catch (execError) {
@@ -145,12 +156,17 @@ async function deployCorePhase1() {
                 console.log('⚠️ Forge command exited with error, but deployment may have succeeded');
                 foundryOutput = execError.stdout ? execError.stdout.toString() : '';
                 if (execError.stderr) {
-                    console.log('📥 Forge stderr:', execError.stderr.toString().substring(0, 500));
+                    const stderr = execError.stderr.toString();
+                    console.log('📥 Forge stderr (full):');
+                    console.log(stderr);
+                }
+                if (execError.message) {
+                    console.log('📥 Error message:', execError.message);
                 }
             }
 
             console.log('Raw Foundry Output:');
-            console.log(foundryOutput);
+            console.log(foundryOutput || '(empty)');
             
             // Парсим адрес из JSON
             let contractAddress = null;
