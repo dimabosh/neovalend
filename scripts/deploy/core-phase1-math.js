@@ -180,7 +180,7 @@ async function deployCorePhase1() {
                     // Ждем 15 секунд чтобы Blockscout проиндексировал контракт
                     await new Promise(resolve => setTimeout(resolve, 15000));
 
-                    const verifyCommand = `forge verify-contract --rpc-url ${process.env.RPC_URL_SEPOLIA} ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl}`;
+                    const verifyCommand = `forge verify-contract --rpc-url ${process.env.RPC_URL_SEPOLIA} ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200`;
 
                     let verified = false;
                     for (let attempt = 1; attempt <= 3; attempt++) {
