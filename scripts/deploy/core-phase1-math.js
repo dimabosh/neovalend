@@ -163,36 +163,77 @@ async function deployCorePhase1() {
                 // Верификация через Blockscout для NEO X
                 if (isNeoX) {
                     console.log(`   📝 Verifying on Blockscout...`);
+
+                    const baseUrl = network === 'neox-mainnet'
+                        ? 'https://xexplorer.neo.org'
+                        : 'https://xt4scan.ngd.network';
+
+                    // Генерируем standard JSON input для верификации
                     try {
-                        const verifierUrl = network === 'neox-mainnet'
-                            ? 'https://xexplorer.neo.org/api'
-                            : 'https://xt4scan.ngd.network/api';
-
-                        // Верификация через Blockscout RPC API
-                        // NEO X Testnet chain ID = 12227332
-                        const chainId = network === 'neox-mainnet' ? '47763' : '12227332';
-                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --chain ${chainId} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --watch`;
-
-                        const verifyOutput = execSync(verifyCommand, {
+                        const jsonInputCmd = `forge verify-contract ${contractAddress} "${contractForFoundry}" --show-standard-json-input`;
+                        const standardJsonInput = execSync(jsonInputCmd, {
                             stdio: 'pipe',
                             encoding: 'utf8',
-                            timeout: 120000
+                            maxBuffer: 50 * 1024 * 1024
                         });
 
-                        // Проверяем что верификация успешна
-                        if (verifyOutput.includes('Successfully verified') || verifyOutput.includes('Contract successfully verified')) {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
+                        // Отправляем через REST API v2
+                        const verifyUrl = `${baseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
+
+                        const formData = {
+                            compiler_version: 'v0.8.27+commit.40a35a09',
+                            license_type: 'mit',
+                            files: {
+                                'input.json': standardJsonInput
+                            }
+                        };
+
+                        // Используем curl для отправки multipart form
+                        const tmpFile = `/tmp/verify_${contractAddress}.json`;
+                        fs.writeFileSync(tmpFile, standardJsonInput);
+
+                        const curlCmd = `curl -s -X POST "${verifyUrl}" \
+                            -F "compiler_version=v0.8.27+commit.40a35a09" \
+                            -F "license_type=mit" \
+                            -F "files[0]=@${tmpFile};filename=input.json"`;
+
+                        const curlOutput = execSync(curlCmd, {
+                            stdio: 'pipe',
+                            encoding: 'utf8',
+                            timeout: 60000
+                        });
+
+                        // Удаляем временный файл
+                        fs.unlinkSync(tmpFile);
+
+                        const response = JSON.parse(curlOutput);
+                        if (response.message === 'Smart-contract verification started') {
+                            // Ждём завершения верификации
+                            console.log(`   ⏳ Verification started, waiting...`);
+                            await new Promise(resolve => setTimeout(resolve, 10000));
+
+                            // Проверяем статус
+                            const statusCmd = `curl -s "${baseUrl}/api/v2/smart-contracts/${contractAddress}"`;
+                            const statusOutput = execSync(statusCmd, { encoding: 'utf8' });
+                            const status = JSON.parse(statusOutput);
+
+                            if (status.is_verified) {
+                                console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
+                            } else {
+                                console.log(`✅ ${libConfig.name}: ${contractAddress} (verification pending)`);
+                            }
+                        } else if (curlOutput.includes('already verified')) {
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
                         } else {
                             console.log(`✅ ${libConfig.name}: ${contractAddress} (submitted)`);
                         }
                     } catch (verifyError) {
-                        const errorMsg = verifyError.stderr ? verifyError.stderr.toString() : verifyError.message;
-                        // Если уже верифицирован - это OK
-                        if (errorMsg.includes('already verified') || errorMsg.includes('Already Verified')) {
+                        const errorMsg = verifyError.message || '';
+                        if (errorMsg.includes('already verified')) {
                             console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
                         } else {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verification pending)`);
-                            console.log(`   ⚠️ ${errorMsg.substring(0, 100)}`);
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verification failed)`);
+                            console.log(`   ⚠️ ${errorMsg.substring(0, 150)}`);
                         }
                     }
                 } else {
