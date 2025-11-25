@@ -71,8 +71,11 @@ async function deployCorePhase1() {
     const network = process.env.NETWORK || 'sepolia';
     const isNeoX = network.includes('neox');
 
+    console.log(`🌐 Network: ${network}`);
+    console.log(`🔧 isNeoX: ${isNeoX}`);
+
     if (isNeoX) {
-        console.log('🌐 Network: NEO X (legacy transactions)');
+        console.log('⚡ Using legacy transactions for NEO X');
     }
 
     // Компиляция один раз в начале
@@ -103,17 +106,17 @@ async function deployCorePhase1() {
 
             const contractForFoundry = libConfig.path + ':' + libConfig.name;
 
-            // Деплой с верификацией
+            // Деплой БЕЗ верификации, верификация отдельно через forge verify-contract
+            const verifierUrl = network === 'neox-mainnet'
+                ? 'https://xexplorer.neo.org/api/'
+                : 'https://xt4scan.ngd.network/api/';
+
             let foundryCommand;
             if (isNeoX) {
-                // NEO X: --legacy + верификация через Blockscout
-                const verifierUrl = network === 'neox-mainnet'
-                    ? 'https://xexplorer.neo.org/api/'
-                    : 'https://xt4scan.ngd.network/api/';
-                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --verify --verifier blockscout --verifier-url ${verifierUrl} --broadcast --json --use 0.8.27`;
+                // NEO X: --legacy для non-EIP1559 сетей
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json --use 0.8.27`;
             } else {
-                const apiKey = process.env.ETHERSCAN_API_KEY ? process.env.ETHERSCAN_API_KEY.trim() : '';
-                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${apiKey} --broadcast --json --use 0.8.27`;
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27`;
             }
 
             let foundryOutput;
@@ -122,14 +125,13 @@ async function deployCorePhase1() {
                     stdio: 'pipe',
                     encoding: 'utf8',
                     maxBuffer: 10 * 1024 * 1024,
-                    timeout: 180000  // 3 минуты для деплоя + верификации
+                    timeout: 300000  // 5 минут для деплоя + верификации
                 });
-                // Показываем output для диагностики верификации
-                console.log(`   📥 ${foundryOutput.replace(/\n/g, ' ').substring(0, 200)}`);
+                console.log(`   📥 ${foundryOutput.replace(/\n/g, ' ').substring(0, 300)}`);
             } catch (execError) {
                 foundryOutput = execError.stdout ? execError.stdout.toString() : '';
                 const stderr = execError.stderr ? execError.stderr.toString() : '';
-                console.log(`   ⚠️ ${(stderr || foundryOutput).replace(/\n/g, ' ').substring(0, 200)}`);
+                console.log(`   ⚠️ ${(stderr || foundryOutput).replace(/\n/g, ' ').substring(0, 300)}`);
             }
 
             // Парсим адрес из JSON
@@ -169,8 +171,58 @@ async function deployCorePhase1() {
                     console.log(`⚠️ Code verification issue: ${verifyError.message}`);
                 }
 
-                // Верификация происходит автоматически через --verify в forge create
                 console.log(`✅ ${libConfig.name}: ${contractAddress}`);
+
+                // Верификация через forge verify-contract
+                if (isNeoX) {
+                    console.log(`   🔍 Verifying on Blockscout...`);
+
+                    // Ждем 15 секунд чтобы Blockscout проиндексировал контракт
+                    await new Promise(resolve => setTimeout(resolve, 15000));
+
+                    const verifyCommand = `forge verify-contract --rpc-url ${process.env.RPC_URL_SEPOLIA} ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl}`;
+
+                    let verified = false;
+                    for (let attempt = 1; attempt <= 3; attempt++) {
+                        try {
+                            console.log(`   🔄 Verification attempt ${attempt}/3...`);
+                            const verifyOutput = execSync(verifyCommand, {
+                                stdio: 'pipe',
+                                encoding: 'utf8',
+                                timeout: 120000  // 2 минуты на попытку
+                            });
+
+                            console.log(`   📥 ${verifyOutput.replace(/\n/g, ' ').substring(0, 200)}`);
+
+                            if (verifyOutput.includes('Successfully') || verifyOutput.includes('verified') || verifyOutput.includes('success')) {
+                                console.log(`   ✅ Verified!`);
+                                verified = true;
+                                break;
+                            }
+                        } catch (verifyError) {
+                            const errMsg = verifyError.stderr ? verifyError.stderr.toString() : '';
+                            const stdOut = verifyError.stdout ? verifyError.stdout.toString() : '';
+                            const output = errMsg + stdOut;
+
+                            console.log(`   📥 ${output.replace(/\n/g, ' ').substring(0, 200)}`);
+
+                            if (output.includes('Already Verified') || output.includes('already verified')) {
+                                console.log(`   ✅ Already verified!`);
+                                verified = true;
+                                break;
+                            }
+
+                            if (attempt < 3) {
+                                console.log(`   ⏳ Waiting 30s before retry...`);
+                                await new Promise(resolve => setTimeout(resolve, 30000));
+                            }
+                        }
+                    }
+
+                    if (!verified) {
+                        console.log(`   ⚠️ Verification failed after 3 attempts`);
+                    }
+                }
 
                 // Сохранить прогресс
                 deployments.libraries[libConfig.name] = contractAddress;
@@ -188,8 +240,9 @@ async function deployCorePhase1() {
             process.exit(1);
         }
 
-        // Задержка между деплоями
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        // Увеличенная задержка между деплоями для Blockscout API
+        console.log('⏳ Waiting 20s before next deployment...');
+        await new Promise(resolve => setTimeout(resolve, 20000));
     }
 
     // Финализация Phase 1
