@@ -96,7 +96,7 @@ async function deployConfiguratorAndProxy() {
 
         let deployCommand;
         if (isNeoX) {
-            // NEO X: верификация через Blockscout
+            // NEO X: Verification via Blockscout
             const verifierUrl = network === 'neox-mainnet'
                 ? 'https://xexplorer.neo.org/api'
                 : 'https://xt4scan.ngd.network/api';
