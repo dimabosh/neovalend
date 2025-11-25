@@ -168,8 +168,8 @@ async function deployCorePhase1() {
                             ? 'https://xexplorer.neo.org/api'
                             : 'https://xt4scan.ngd.network/api';
 
-                        // Стандартная верификация через Blockscout API
-                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --watch`;
+                        // Верификация с автоопределением constructor args из on-chain bytecode
+                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --guess-constructor-args --watch`;
 
                         const verifyOutput = execSync(verifyCommand, {
                             stdio: 'pipe',
