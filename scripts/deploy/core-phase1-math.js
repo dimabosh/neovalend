@@ -168,37 +168,32 @@ async function deployCorePhase1() {
                         ? 'https://xexplorer.neo.org'
                         : 'https://xt4scan.ngd.network';
 
-                    // Генерируем standard JSON input для верификации
                     try {
-                        const jsonInputCmd = `forge verify-contract ${contractAddress} "${contractForFoundry}" --show-standard-json-input`;
-                        const standardJsonInput = execSync(jsonInputCmd, {
+                        // Используем flattened source code - более надёжный метод
+                        const flattenCmd = `forge flatten "${libConfig.path}"`;
+                        const flattenedSource = execSync(flattenCmd, {
                             stdio: 'pipe',
                             encoding: 'utf8',
                             maxBuffer: 50 * 1024 * 1024
                         });
 
-                        // Отправляем через REST API v2
-                        const verifyUrl = `${baseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
+                        // Отправляем через REST API v2 - flattened-code endpoint
+                        const verifyUrl = `${baseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/flattened-code`;
 
-                        const formData = {
-                            compiler_version: 'v0.8.27+commit.40a35a09',
-                            license_type: 'mit',
-                            files: {
-                                'input.json': standardJsonInput
-                            }
-                        };
+                        // Сохраняем source во временный файл
+                        const tmpFile = `/tmp/verify_${contractAddress}.sol`;
+                        fs.writeFileSync(tmpFile, flattenedSource);
 
-                        // Используем curl для отправки multipart form
-                        const tmpFile = `/tmp/verify_${contractAddress}.json`;
-                        fs.writeFileSync(tmpFile, standardJsonInput);
-
-                        // Формат согласно документации Blockscout
+                        // POST запрос с flattened source
                         const curlCmd = `curl -s -L -X POST "${verifyUrl}" \
                             --form "compiler_version=v0.8.27+commit.40a35a09" \
+                            --form "source_code=<${tmpFile}" \
                             --form "contract_name=${libConfig.name}" \
-                            --form "license_type=mit" \
+                            --form "is_optimization_enabled=true" \
+                            --form "optimization_runs=200" \
+                            --form "evm_version=shanghai" \
                             --form "autodetect_constructor_args=true" \
-                            --form "files[0]=@${tmpFile}"`;
+                            --form "license_type=mit"`;
 
                         const curlOutput = execSync(curlCmd, {
                             stdio: 'pipe',
@@ -209,20 +204,18 @@ async function deployCorePhase1() {
                         // Удаляем временный файл
                         fs.unlinkSync(tmpFile);
 
-                        console.log(`   📥 API Response: ${curlOutput.substring(0, 200)}`);
+                        console.log(`   📥 Response: ${curlOutput.substring(0, 150)}`);
 
                         let response;
                         try {
                             response = JSON.parse(curlOutput);
                         } catch (e) {
-                            console.log(`   ⚠️ Failed to parse response`);
                             response = {};
                         }
 
                         if (response.message === 'Smart-contract verification started' || response.status === 'success') {
-                            // Ждём завершения верификации
                             console.log(`   ⏳ Verification started, waiting...`);
-                            await new Promise(resolve => setTimeout(resolve, 10000));
+                            await new Promise(resolve => setTimeout(resolve, 15000));
 
                             // Проверяем статус
                             const statusCmd = `curl -s "${baseUrl}/api/v2/smart-contracts/${contractAddress}"`;
@@ -232,21 +225,16 @@ async function deployCorePhase1() {
                             if (status.is_verified) {
                                 console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
                             } else {
-                                console.log(`✅ ${libConfig.name}: ${contractAddress} (verification pending)`);
+                                console.log(`✅ ${libConfig.name}: ${contractAddress} (pending)`);
                             }
-                        } else if (curlOutput.includes('already verified')) {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
+                        } else if (response.is_verified) {
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
                         } else {
                             console.log(`✅ ${libConfig.name}: ${contractAddress} (submitted)`);
                         }
                     } catch (verifyError) {
-                        const errorMsg = verifyError.message || '';
-                        if (errorMsg.includes('already verified')) {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
-                        } else {
-                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verification failed)`);
-                            console.log(`   ⚠️ ${errorMsg.substring(0, 150)}`);
-                        }
+                        console.log(`✅ ${libConfig.name}: ${contractAddress} (verify error)`);
+                        console.log(`   ⚠️ ${verifyError.message.substring(0, 100)}`);
                     }
                 } else {
                     console.log(`✅ ${libConfig.name}: ${contractAddress}`);
