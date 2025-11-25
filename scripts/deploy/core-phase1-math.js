@@ -168,16 +168,25 @@ async function deployCorePhase1() {
                             ? 'https://xexplorer.neo.org/api'
                             : 'https://xt4scan.ngd.network/api';
 
-                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --watch`;
+                        // Верификация с точными параметрами из foundry.toml
+                        // Библиотеки без constructor args - не указываем --constructor-args
+                        const verifyCommand = `forge verify-contract ${contractAddress} "${contractForFoundry}" --verifier blockscout --verifier-url ${verifierUrl} --compiler-version 0.8.27 --num-of-optimizations 200 --evm-version shanghai --watch`;
 
-                        execSync(verifyCommand, {
+                        const verifyOutput = execSync(verifyCommand, {
                             stdio: 'pipe',
                             encoding: 'utf8',
-                            timeout: 60000
+                            timeout: 120000
                         });
                         console.log(`✅ ${libConfig.name}: ${contractAddress} (verified)`);
                     } catch (verifyError) {
-                        console.log(`✅ ${libConfig.name}: ${contractAddress} (verification pending)`);
+                        const errorMsg = verifyError.stderr ? verifyError.stderr.toString() : verifyError.message;
+                        // Если уже верифицирован - это OK
+                        if (errorMsg.includes('already verified') || errorMsg.includes('Already Verified')) {
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (already verified)`);
+                        } else {
+                            console.log(`✅ ${libConfig.name}: ${contractAddress} (verification pending)`);
+                            console.log(`   ⚠️ ${errorMsg.substring(0, 100)}`);
+                        }
                     }
                 } else {
                     console.log(`✅ ${libConfig.name}: ${contractAddress}`);
