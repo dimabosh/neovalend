@@ -192,11 +192,13 @@ async function deployCorePhase1() {
                         const tmpFile = `/tmp/verify_${contractAddress}.json`;
                         fs.writeFileSync(tmpFile, standardJsonInput);
 
-                        const curlCmd = `curl -s -X POST "${verifyUrl}" \
-                            -H "Content-Type: multipart/form-data" \
-                            -F "compiler_version=v0.8.27+commit.40a35a09" \
-                            -F "license_type=mit" \
-                            -F "files=@${tmpFile};type=application/json"`;
+                        // Формат согласно документации Blockscout
+                        const curlCmd = `curl -s -L -X POST "${verifyUrl}" \
+                            --form "compiler_version=v0.8.27+commit.40a35a09" \
+                            --form "contract_name=${libConfig.name}" \
+                            --form "license_type=mit" \
+                            --form "autodetect_constructor_args=true" \
+                            --form "files[0]=@${tmpFile}"`;
 
                         const curlOutput = execSync(curlCmd, {
                             stdio: 'pipe',
