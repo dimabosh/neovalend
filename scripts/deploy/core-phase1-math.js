@@ -193,12 +193,18 @@ async function deployCorePhase1() {
                                 verified = true;
                                 break;
                             } else if (contractInfo.is_verified) {
+                                // Контракт уже верифицирован, но с другим именем
+                                // НЕ делаем retry - forge verify-contract отправляет все source files
+                                // и может перезаписать верификацию неправильным контрактом
                                 console.log(`   ⚠️ Verified but as wrong name: ${contractInfo.name}`);
+                                console.log(`   ℹ️  Skipping retry - already verified (retry may make it worse)`);
+                                break; // Выходим из цикла - повторные попытки не помогут
                             } else {
                                 console.log(`   ⚠️ Not verified yet, attempt ${attempt}/3`);
                             }
 
-                            if (!verified && attempt < 3) {
+                            // Retry ТОЛЬКО если контракт НЕ верифицирован вообще
+                            if (!contractInfo.is_verified && attempt < 3) {
                                 console.log(`   🔄 Retrying verification...`);
                                 const verifyCommand = `forge verify-contract --rpc-url ${process.env.RPC_URL_SEPOLIA} ${contractAddress} ${contractForFoundry} --verifier blockscout --verifier-url ${verifierUrl}`;
                                 try {
