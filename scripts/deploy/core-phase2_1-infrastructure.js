@@ -161,7 +161,12 @@ async function deployCorePhase2_2() {
         process.exit(1);
     }
 
-    if (!process.env.ETHERSCAN_API_KEY) {
+    // Check network type
+    const network = process.env.NETWORK || 'sepolia';
+    const isNeoX = network.includes('neox');
+
+    // ETHERSCAN_API_KEY only required for non-NEO X networks
+    if (!isNeoX && !process.env.ETHERSCAN_API_KEY) {
         console.error('❌ ETHERSCAN_API_KEY not set!');
         process.exit(1);
     }
@@ -268,11 +273,7 @@ async function deployCorePhase2_2() {
 
         console.log(`🚀 Deploying ${contractConfig.name}...`);
 
-        // Network configuration
-        const network = process.env.NETWORK || 'sepolia';
-        const isNeoX = network.includes('neox');
-
-        // Blockscout URLs для верификации
+        // Blockscout URLs для верификации (network and isNeoX defined at top)
         const verifierBaseUrl = network === 'neox-mainnet'
             ? 'https://xexplorer.neo.org'
             : 'https://xt4scan.ngd.network';
