@@ -19,17 +19,37 @@
     "LiquidationLogic": "0x31c2e1f59836B73b83b4f39777d9689Abe02D776",
     "PoolLogic": "0x490B4538899D52c2E68f8A2005b1bAC9DFF2ef0C"
   },
-  "contracts": {
-    "PoolAddressesProvider": "0x77b36e79E28F36b87Bc5EDBe05322DC229e1A0F3",
-    "Pool": "0xD272575622c700C44a1769EbD1a3DbFA74f2ae55",
-    "PoolConfigurator": "0xA80b7454e6E66f19de9d0b7a081923Cc85013D68",
-    "ACLManager": "0xc6E9b33550cAb966f114481B6Dce4BDFaa72bCaF",
-    "AaveOracle": "0x568b266ef3F109d165e634119768942D06E3e623",
-    "DefaultReserveInterestRateStrategyV2": "0x4438c9B0D2bC0eF81F1a0b0485B742c8E0833d2F",
-    "ATokenInstance": "0x8F5b74e604Bc40c131E5945ea1E370a0dB9Da0ca",
-    "VariableDebtTokenInstance": "0xdC1e7A2308d4f5e293f1B7948235AFE0D712A36b",
-    "USDT": "0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0",
-    "wA7A5": "0x18fb744Eb960480179006E3391293c77bB6f8De6",
-    "WBTC": "0x29f2D40B0605204364af54EC677bD022dA425d03"
+  "contracts": {},
+  "_old_deployment": {
+    "comment": "Previous deployment with verification issues - kept for reference",
+    "libraries": {
+      "WadRayMath": "0x7c800f46339b613E9DBAD00d908E1790b30AB64B",
+      "PercentageMath": "0x289143b087424BE506721BaF6E17653eD93Cc096",
+      "MathUtils": "0x13DCC02828b5dd6186fe92660Dd53135eCaAB34E",
+      "Errors": "0x595b23E253803A4C5CE322AEC76118eF03757d5f",
+      "DataTypes": "0x9Dd8A45E9A9cED101A308f351f9ED878831B7712",
+      "IsolationModeLogic": "0x898562215dB699cb3965e32bc26CFe47Fa4dE7Db",
+      "SupplyLogic": "0x1E35F6Dd9676F2208A3048C50b7dF7671dD4D30F",
+      "BorrowLogic": "0x549896F4486C018d6774E6be7b29500e3975936e",
+      "FlashLoanLogic": "0x5e3e09Fc285eA8ebC666ea9aD8e548fd048dC10C",
+      "EModeLogic": "0x52E6Bb92515a5DbF52A9C75705fc2fEcf7796B7C",
+      "ReserveConfiguration": "0xd75F882debc7B7A04B467cA8b1db32A40a47a047",
+      "ConfiguratorLogic": "0xB647cae1c82115DDB290c26aDFF0Cf076aF5Dd6c",
+      "LiquidationLogic": "0x31c2e1f59836B73b83b4f39777d9689Abe02D776",
+      "PoolLogic": "0x490B4538899D52c2E68f8A2005b1bAC9DFF2ef0C"
+    },
+    "contracts": {
+      "PoolAddressesProvider": "0x77b36e79E28F36b87Bc5EDBe05322DC229e1A0F3",
+      "Pool": "0xD272575622c700C44a1769EbD1a3DbFA74f2ae55",
+      "PoolConfigurator": "0xA80b7454e6E66f19de9d0b7a081923Cc85013D68",
+      "ACLManager": "0xc6E9b33550cAb966f114481B6Dce4BDFaa72bCaF",
+      "AaveOracle": "0x568b266ef3F109d165e634119768942D06E3e623",
+      "DefaultReserveInterestRateStrategyV2": "0x4438c9B0D2bC0eF81F1a0b0485B742c8E0833d2F",
+      "ATokenInstance": "0x8F5b74e604Bc40c131E5945ea1E370a0dB9Da0ca",
+      "VariableDebtTokenInstance": "0xdC1e7A2308d4f5e293f1B7948235AFE0D712A36b",
+      "USDT": "0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0",
+      "wA7A5": "0x18fb744Eb960480179006E3391293c77bB6f8De6",
+      "WBTC": "0x29f2D40B0605204364af54EC677bD022dA425d03"
+    }
   }
 }

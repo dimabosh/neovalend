@@ -1,14 +1,119 @@
 const { ethers } = require('ethers');
 const fs = require('fs');
 const { execSync } = require('child_process');
+const path = require('path');
+const os = require('os');
 
 // CORE Phase 1: Math Libraries (Aave v3.5 with Solidity 0.8.27)
 // 5 контрактов: WadRayMath, PercentageMath, MathUtils, Errors, DataTypes
+// Верификация через Standard JSON Input API для решения проблемы constructor args
+
+/**
+ * Создаёт Standard JSON Input для верификации через Blockscout API
+ * Использует flattened source для избежания "First Match" проблемы
+ */
+function createStandardJsonInput(contractName, flattenedSource) {
+    return {
+        language: "Solidity",
+        sources: {
+            [`${contractName}.sol`]: {
+                content: flattenedSource
+            }
+        },
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200
+            },
+            evmVersion: "shanghai",
+            metadata: {
+                bytecodeHash: "none",
+                useLiteralContent: false,
+                appendCBOR: true
+            },
+            viaIR: false,
+            outputSelection: {
+                "*": {
+                    "*": ["abi", "evm.bytecode", "evm.deployedBytecode", "metadata"]
+                }
+            }
+        }
+    };
+}
+
+/**
+ * Верифицирует контракт через Blockscout Standard Input API
+ */
+async function verifyViaStandardInput(contractAddress, contractName, contractPath, verifierBaseUrl) {
+    console.log(`   🔄 Verifying via Standard Input API...`);
+
+    try {
+        // 1. Flatten source code
+        const flattenedSource = execSync(`forge flatten "${contractPath}"`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe']
+        });
+
+        // 2. Create Standard JSON Input
+        const stdJsonInput = createStandardJsonInput(contractName, flattenedSource);
+
+        // 3. Save to temp file (required for multipart upload)
+        const tempFile = path.join(os.tmpdir(), `${contractName}_input.json`);
+        fs.writeFileSync(tempFile, JSON.stringify(stdJsonInput));
+
+        // 4. Submit via curl multipart form
+        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
+
+        const curlCmd = `curl -s -L -X POST "${apiUrl}" \
+            --form 'compiler_version=v0.8.27+commit.40a35a09' \
+            --form 'contract_name=${contractName}' \
+            --form 'license_type=none' \
+            --form 'files[0]=@${tempFile};filename=input.json;type=application/json'`;
+
+        const result = execSync(curlCmd, { encoding: 'utf8', timeout: 60000 });
+
+        // Cleanup temp file
+        try { fs.unlinkSync(tempFile); } catch (e) {}
+
+        const response = JSON.parse(result);
+        if (response.message === "Smart-contract verification started") {
+            console.log(`   📤 Verification started successfully`);
+            return true;
+        } else {
+            console.log(`   ⚠️ API response: ${result.substring(0, 100)}`);
+            return false;
+        }
+    } catch (error) {
+        console.log(`   ⚠️ Standard Input verification failed: ${error.message?.substring(0, 80) || 'unknown'}`);
+        return false;
+    }
+}
+
+/**
+ * Проверяет статус верификации контракта
+ */
+async function checkVerificationStatus(contractAddress, expectedName, verifierBaseUrl) {
+    try {
+        const checkUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}`;
+        const result = execSync(`curl -s "${checkUrl}"`, { encoding: 'utf8' });
+        const contractInfo = JSON.parse(result);
+
+        return {
+            isVerified: contractInfo.is_verified === true,
+            isPartiallyVerified: contractInfo.is_partially_verified === true,
+            name: contractInfo.name,
+            nameMatches: contractInfo.name === expectedName
+        };
+    } catch (error) {
+        return { isVerified: false, isPartiallyVerified: false, name: null, nameMatches: false };
+    }
+}
 
 async function deployCorePhase1() {
     console.log('🚀 CORE Phase 1: Math Libraries (Aave v3.5)');
     console.log('===========================================');
-    console.log('📋 Contracts: 5 math libraries\n');
+    console.log('📋 Contracts: 5 math libraries');
+    console.log('🔧 Verification: Standard JSON Input API\n');
 
     const provider = new ethers.JsonRpcProvider(process.env.RPC_URL_SEPOLIA);
     const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
@@ -71,8 +176,14 @@ async function deployCorePhase1() {
     const network = process.env.NETWORK || 'sepolia';
     const isNeoX = network.includes('neox');
 
+    // Blockscout URLs
+    const verifierBaseUrl = network === 'neox-mainnet'
+        ? 'https://xexplorer.neo.org'
+        : 'https://xt4scan.ngd.network';
+
     console.log(`🌐 Network: ${network}`);
     console.log(`🔧 isNeoX: ${isNeoX}`);
+    console.log(`🔍 Verifier: ${verifierBaseUrl}`);
 
     if (isNeoX) {
         console.log('⚡ Using legacy transactions for NEO X');
@@ -106,15 +217,12 @@ async function deployCorePhase1() {
 
             const contractForFoundry = libConfig.path + ':' + libConfig.name;
 
-            // Деплой БЕЗ верификации, верификация отдельно через forge verify-contract
-            const verifierUrl = network === 'neox-mainnet'
-                ? 'https://xexplorer.neo.org/api/'
-                : 'https://xt4scan.ngd.network/api/';
-
+            // Деплой БЕЗ встроенной верификации forge (она использует все исходники)
+            // Верификация будет через Standard Input API отдельно
             let foundryCommand;
             if (isNeoX) {
-                // NEO X: --legacy + --verify в forge create (отправляет только нужный файл)
-                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --verify --verifier blockscout --verifier-url ${verifierUrl} --broadcast --json --use 0.8.27`;
+                // NEO X: --legacy для транзакций, БЕЗ --verify
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json --use 0.8.27`;
             } else {
                 foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27`;
             }
@@ -125,13 +233,13 @@ async function deployCorePhase1() {
                     stdio: 'pipe',
                     encoding: 'utf8',
                     maxBuffer: 10 * 1024 * 1024,
-                    timeout: 300000  // 5 минут для деплоя + верификации
+                    timeout: 180000  // 3 минуты для деплоя
                 });
-                console.log(`   📥 ${foundryOutput.replace(/\n/g, ' ').substring(0, 300)}`);
+                console.log(`   📥 Deployed successfully`);
             } catch (execError) {
                 foundryOutput = execError.stdout ? execError.stdout.toString() : '';
                 const stderr = execError.stderr ? execError.stderr.toString() : '';
-                console.log(`   ⚠️ ${(stderr || foundryOutput).replace(/\n/g, ' ').substring(0, 300)}`);
+                console.log(`   ⚠️ ${(stderr || foundryOutput).replace(/\n/g, ' ').substring(0, 200)}`);
             }
 
             // Парсим адрес из JSON
@@ -159,7 +267,7 @@ async function deployCorePhase1() {
                     const code = execSync(checkCommand, { stdio: 'pipe', encoding: 'utf8' }).trim();
 
                     if (code === '0x' || code.length <= 4) {
-                        console.log('⏳ Waiting for blockchain sync...');
+                        console.log('   ⏳ Waiting for blockchain sync...');
                         await new Promise(resolve => setTimeout(resolve, 10000));
 
                         const codeRetry = execSync(checkCommand, { stdio: 'pipe', encoding: 'utf8' }).trim();
@@ -168,84 +276,52 @@ async function deployCorePhase1() {
                         }
                     }
                 } catch (verifyError) {
-                    console.log(`⚠️ Code verification issue: ${verifyError.message}`);
+                    console.log(`   ⚠️ Code verification issue: ${verifyError.message}`);
                 }
 
-                console.log(`✅ ${libConfig.name}: ${contractAddress}`);
+                console.log(`   ✅ ${libConfig.name}: ${contractAddress}`);
 
-                // Проверяем верификацию через Blockscout API
-                // Используем прямой API вызов с flattened code и явным contract_name
+                // Верификация через Standard Input API
                 if (isNeoX) {
-                    console.log(`   🔍 Checking verification status...`);
+                    console.log(`   🔍 Starting verification via Standard Input API...`);
 
-                    // Ждем 20 секунд чтобы Blockscout проиндексировал
+                    // Ждём индексацию на Blockscout
+                    await new Promise(resolve => setTimeout(resolve, 15000));
+
+                    // Отправляем верификацию через Standard Input API
+                    await verifyViaStandardInput(contractAddress, libConfig.name, libConfig.path, verifierBaseUrl);
+
+                    // Ждём обработки верификации
                     await new Promise(resolve => setTimeout(resolve, 20000));
 
-                    // Проверяем верификацию через API
+                    // Проверяем результат
                     let verified = false;
                     for (let attempt = 1; attempt <= 3; attempt++) {
-                        try {
-                            const checkUrl = `https://xt4scan.ngd.network/api/v2/smart-contracts/${contractAddress}`;
-                            const checkResult = execSync(`curl -s "${checkUrl}"`, { encoding: 'utf8' });
-                            const contractInfo = JSON.parse(checkResult);
+                        const status = await checkVerificationStatus(contractAddress, libConfig.name, verifierBaseUrl);
 
-                            if (contractInfo.is_verified && contractInfo.name === libConfig.name) {
-                                console.log(`   ✅ Verified as ${contractInfo.name}`);
-                                verified = true;
-                                break;
-                            } else if (contractInfo.is_verified) {
-                                // Уже верифицирован с другим именем - не перезаписываем
-                                console.log(`   ⚠️ Already verified as: ${contractInfo.name}`);
-                                console.log(`   ℹ️  Skipping retry to avoid overwriting`);
-                                break;
-                            } else {
-                                console.log(`   ⏳ Not verified yet (attempt ${attempt}/3)`);
-
-                                // Retry через прямой Blockscout API с flattened code
-                                if (attempt < 3) {
-                                    console.log(`   🔄 Retrying via Blockscout API (flattened)...`);
-                                    try {
-                                        // Получаем flattened source code
-                                        const flattenedCode = execSync(`forge flatten "${libConfig.path}"`, {
-                                            encoding: 'utf8',
-                                            stdio: ['pipe', 'pipe', 'pipe']
-                                        });
-
-                                        // Формируем JSON для API
-                                        const verifyPayload = {
-                                            compiler_version: "v0.8.27+commit.40a35a09",
-                                            license_type: "none",
-                                            source_code: flattenedCode,
-                                            is_optimization_enabled: true,
-                                            optimization_runs: 200,
-                                            contract_name: libConfig.name,
-                                            evm_version: "shanghai",
-                                            autodetect_constructor_args: true
-                                        };
-
-                                        // Отправляем на верификацию
-                                        const apiUrl = `https://xt4scan.ngd.network/api/v2/smart-contracts/${contractAddress}/verification/via/flattened-code`;
-                                        const curlCmd = `curl -s -X POST "${apiUrl}" -H "Content-Type: application/json" -d '${JSON.stringify(verifyPayload).replace(/'/g, "'\\''")}'`;
-
-                                        const apiResult = execSync(curlCmd, { encoding: 'utf8', timeout: 60000 });
-                                        console.log(`   📤 API response: ${apiResult.substring(0, 100)}`);
-                                    } catch (e) {
-                                        console.log(`   ⚠️ API verify failed: ${e.message?.substring(0, 80) || 'unknown'}`);
-                                    }
-                                    console.log(`   ⏳ Waiting 20s...`);
-                                    await new Promise(resolve => setTimeout(resolve, 20000));
-                                }
-                            }
-                        } catch (checkError) {
-                            console.log(`   ⚠️ Check failed: ${checkError.message}`);
+                        if (status.isVerified && status.nameMatches) {
+                            console.log(`   ✅ Verified as ${status.name}`);
+                            verified = true;
+                            break;
+                        } else if (status.isVerified && !status.nameMatches) {
+                            console.log(`   ⚠️ Verified but as: ${status.name} (expected: ${libConfig.name})`);
+                            // Попробуем переверифицировать
                             if (attempt < 3) {
-                                await new Promise(resolve => setTimeout(resolve, 10000));
+                                console.log(`   🔄 Retrying verification (attempt ${attempt + 1}/3)...`);
+                                await verifyViaStandardInput(contractAddress, libConfig.name, libConfig.path, verifierBaseUrl);
+                                await new Promise(resolve => setTimeout(resolve, 20000));
+                            }
+                        } else {
+                            console.log(`   ⏳ Not verified yet (attempt ${attempt}/3)`);
+                            if (attempt < 3) {
+                                await verifyViaStandardInput(contractAddress, libConfig.name, libConfig.path, verifierBaseUrl);
+                                await new Promise(resolve => setTimeout(resolve, 20000));
                             }
                         }
                     }
 
                     if (!verified) {
-                        console.log(`   ⚠️ Verification incomplete - may need manual check`);
+                        console.log(`   ⚠️ Verification may need manual check`);
                     }
                 }
 
@@ -265,9 +341,9 @@ async function deployCorePhase1() {
             process.exit(1);
         }
 
-        // Увеличенная задержка между деплоями для Blockscout API
-        console.log('⏳ Waiting 20s before next deployment...');
-        await new Promise(resolve => setTimeout(resolve, 20000));
+        // Задержка между деплоями
+        console.log('   ⏳ Waiting 10s before next deployment...');
+        await new Promise(resolve => setTimeout(resolve, 10000));
     }
 
     // Финализация Phase 1
