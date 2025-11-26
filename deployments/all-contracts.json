@@ -1,7 +1,7 @@
 {
   "network": "neox-testnet",
   "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
-  "timestamp": "2025-11-26T14:48:21.135Z",
+  "timestamp": "2025-11-26T14:57:32.415Z",
   "phase": "core-2.5-completed",
   "libraries": {
     "WadRayMath": "0x3BFF3E7a3F38091465b23230fd695fd92878049E",
