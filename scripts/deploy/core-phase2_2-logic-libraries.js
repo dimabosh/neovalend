@@ -103,32 +103,85 @@ function createMultiFileStandardJsonInput(contractPath, contractName) {
 
 /**
  * Верифицирует контракт через Blockscout Flattened Code API
- * Использует flattened source с явным указанием contract_name
+ * Удаляет все контракты кроме нужного из flattened source
  */
 async function verifyViaStandardInput(contractAddress, contractName, contractPath, verifierBaseUrl) {
-    console.log(`   🔄 Verifying via Flattened Code API...`);
+    console.log(`   🔄 Verifying via Flattened Code API (single contract)...`);
 
     try {
         // 1. Flatten source code
-        const flattenedSource = execSync(`forge flatten "${contractPath}"`, {
+        let flattenedSource = execSync(`forge flatten "${contractPath}"`, {
             encoding: 'utf8',
             stdio: ['pipe', 'pipe', 'pipe'],
             maxBuffer: 10 * 1024 * 1024
         });
 
-        // 2. Submit via Flattened Code API (NOT Standard Input)
-        // This endpoint respects contract_name parameter
-        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/flattened-code`;
+        // 2. КРИТИЧНО: Удалить ВСЕ библиотеки/контракты кроме нужного!
+        // Blockscout использует "First Match" алгоритм - выбирает первый контракт с совпадающим bytecode
+        // Библиотеки с только internal функциями имеют одинаковый (пустой) bytecode
+        // Решение: оставить ТОЛЬКО целевой контракт
 
-        // Escape source code for JSON
-        const escapedSource = JSON.stringify(flattenedSource);
+        // Найти все contract/library определения
+        const contractRegex = /^(library|contract|abstract contract|interface)\s+(\w+)/gm;
+        const contracts = [];
+        let match;
+        while ((match = contractRegex.exec(flattenedSource)) !== null) {
+            contracts.push({ type: match[1], name: match[2], index: match.index });
+        }
+
+        console.log(`   📋 Found ${contracts.length} contracts in flattened source`);
+
+        // Найти наш целевой контракт
+        const targetContract = contracts.find(c => c.name === contractName);
+        if (!targetContract) {
+            console.log(`   ⚠️ Target contract ${contractName} not found in source`);
+            // Fallback: отправить как есть
+        } else {
+            // Найти контракты которые нужно УДАЛИТЬ (не interfaces и не наш контракт)
+            // НО нужно оставить interfaces и structs которые использует наш контракт
+            const toRemove = contracts.filter(c =>
+                c.name !== contractName &&
+                c.type !== 'interface' &&
+                // Также оставляем DataTypes т.к. там struct определения
+                c.name !== 'DataTypes' &&
+                c.name !== 'Errors'
+            );
+
+            console.log(`   🗑️ Removing ${toRemove.length} competing contracts: ${toRemove.map(c => c.name).join(', ')}`);
+
+            // Удалить каждый контракт (от начала определения до закрывающей скобки)
+            // Идём с конца чтобы не сбить индексы
+            for (const contract of toRemove.reverse()) {
+                // Найти конец контракта (matching closing brace)
+                let braceCount = 0;
+                let startIdx = flattenedSource.indexOf('{', contract.index);
+                let endIdx = startIdx;
+
+                for (let i = startIdx; i < flattenedSource.length; i++) {
+                    if (flattenedSource[i] === '{') braceCount++;
+                    if (flattenedSource[i] === '}') braceCount--;
+                    if (braceCount === 0) {
+                        endIdx = i + 1;
+                        break;
+                    }
+                }
+
+                // Удалить весь контракт
+                flattenedSource = flattenedSource.slice(0, contract.index) +
+                                  `// Removed: ${contract.name}\n` +
+                                  flattenedSource.slice(endIdx);
+            }
+        }
+
+        // 3. Submit via Flattened Code API
+        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/flattened-code`;
 
         const payload = {
             compiler_version: "v0.8.27+commit.40a35a09",
             source_code: flattenedSource,
             is_optimization_enabled: true,
             optimization_runs: 200,
-            contract_name: contractName,  // Явное имя контракта!
+            contract_name: contractName,
             evm_version: "shanghai",
             autodetect_constructor_args: true,
             license_type: "none"
