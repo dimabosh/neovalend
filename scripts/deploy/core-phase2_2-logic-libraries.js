@@ -59,12 +59,16 @@ function collectImports(filePath, collected = new Set()) {
 /**
  * Создаёт Standard JSON Input для верификации через Blockscout API
  * Использует flattened source - ТОЧНО как в Phase 1 (работает!)
+ * ВАЖНО: Имя файла начинается с "A_" чтобы идти первым по алфавиту
+ * и побеждать в "First Match" алгоритме Blockscout
  */
 function createStandardJsonInput(contractName, flattenedSource) {
     return {
         language: "Solidity",
         sources: {
-            [`${contractName}.sol`]: {
+            // Имя файла начинается с "A_" чтобы быть первым по алфавиту
+            // Это побеждает "First Match" алгоритм Blockscout
+            [`A_${contractName}.sol`]: {
                 content: flattenedSource
             }
         },
