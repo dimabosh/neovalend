@@ -9,18 +9,78 @@ const os = require('os');
 // NOTE: ReserveLogic, GenericLogic, ValidationLogic НЕ деплоятся - они инлайнятся (только internal функции)
 
 /**
- * Создаёт Standard JSON Input для верификации через Blockscout API
- * Использует flattened source для избежания "First Match" проблемы
+ * Рекурсивно собирает все импорты из Solidity файла
  */
-function createStandardJsonInput(contractName, flattenedSource) {
+function collectImports(filePath, collected = new Set()) {
+    if (collected.has(filePath)) return collected;
+
+    if (!fs.existsSync(filePath)) {
+        console.log(`   ⚠️ File not found: ${filePath}`);
+        return collected;
+    }
+
+    collected.add(filePath);
+    const content = fs.readFileSync(filePath, 'utf8');
+
+    // Найти все import statements
+    const importRegex = /import\s+(?:\{[^}]+\}\s+from\s+)?["']([^"']+)["']/g;
+    let match;
+
+    while ((match = importRegex.exec(content)) !== null) {
+        let importPath = match[1];
+        let resolvedPath = null;
+
+        // Resolve import path
+        if (importPath.startsWith('@aave/') || importPath.startsWith('aave-v3-origin/')) {
+            // Aave imports
+            resolvedPath = importPath
+                .replace('@aave/', 'contracts/aave-v3-origin/src/contracts/')
+                .replace('aave-v3-origin/', 'contracts/aave-v3-origin/src/contracts/');
+        } else if (importPath.startsWith('@openzeppelin/')) {
+            // OpenZeppelin imports
+            resolvedPath = importPath.replace('@openzeppelin/', 'node_modules/@openzeppelin/');
+        } else if (importPath.startsWith('./') || importPath.startsWith('../')) {
+            // Relative imports
+            const dir = path.dirname(filePath);
+            resolvedPath = path.normalize(path.join(dir, importPath));
+        } else {
+            // Try as-is
+            resolvedPath = importPath;
+        }
+
+        if (resolvedPath && fs.existsSync(resolvedPath)) {
+            collectImports(resolvedPath, collected);
+        }
+    }
+
+    return collected;
+}
+
+/**
+ * Создаёт Standard JSON Input для multi-file верификации
+ */
+function createMultiFileStandardJsonInput(contractPath, contractName) {
+    // Собрать все зависимости
+    const allFiles = collectImports(contractPath);
+
+    // Создать sources object с правильными путями
+    const sources = {};
+    for (const filePath of allFiles) {
+        const content = fs.readFileSync(filePath, 'utf8');
+        sources[filePath] = { content };
+    }
+
+    console.log(`   📁 Collected ${allFiles.size} source files`);
+
     return {
         language: "Solidity",
-        sources: {
-            [`${contractName}.sol`]: {
-                content: flattenedSource
-            }
-        },
+        sources,
         settings: {
+            remappings: [
+                "@aave/=contracts/aave-v3-origin/src/contracts/",
+                "aave-v3-origin/=contracts/aave-v3-origin/src/contracts/",
+                "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"
+            ],
             optimizer: {
                 enabled: true,
                 runs: 200
@@ -42,35 +102,31 @@ function createStandardJsonInput(contractName, flattenedSource) {
 }
 
 /**
- * Верифицирует контракт через Blockscout Standard Input API
+ * Верифицирует контракт через Blockscout Standard Input API (multi-file)
  */
 async function verifyViaStandardInput(contractAddress, contractName, contractPath, verifierBaseUrl) {
-    console.log(`   🔄 Verifying via Standard Input API...`);
+    console.log(`   🔄 Verifying via Standard Input API (multi-file)...`);
 
     try {
-        // 1. Flatten source code
-        const flattenedSource = execSync(`forge flatten "${contractPath}"`, {
-            encoding: 'utf8',
-            stdio: ['pipe', 'pipe', 'pipe']
-        });
+        // 1. Create Standard JSON Input with all dependencies
+        const stdJsonInput = createMultiFileStandardJsonInput(contractPath, contractName);
 
-        // 2. Create Standard JSON Input
-        const stdJsonInput = createStandardJsonInput(contractName, flattenedSource);
-
-        // 3. Save to temp file (required for multipart upload)
+        // 2. Save to temp file (required for multipart upload)
         const tempFile = path.join(os.tmpdir(), `${contractName}_input.json`);
         fs.writeFileSync(tempFile, JSON.stringify(stdJsonInput));
 
-        // 4. Submit via curl multipart form
+        // 3. Submit via curl multipart form
+        // contractName должен включать путь к файлу: "path/to/Contract.sol:ContractName"
+        const fullContractName = `${contractPath}:${contractName}`;
         const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
 
         const curlCmd = `curl -s -L -X POST "${apiUrl}" \
             --form 'compiler_version=v0.8.27+commit.40a35a09' \
-            --form 'contract_name=${contractName}' \
+            --form 'contract_name=${fullContractName}' \
             --form 'license_type=none' \
             --form 'files[0]=@${tempFile};filename=input.json;type=application/json'`;
 
-        const result = execSync(curlCmd, { encoding: 'utf8', timeout: 60000 });
+        const result = execSync(curlCmd, { encoding: 'utf8', timeout: 120000 });
 
         // Cleanup temp file
         try { fs.unlinkSync(tempFile); } catch (e) {}
@@ -80,7 +136,7 @@ async function verifyViaStandardInput(contractAddress, contractName, contractPat
             console.log(`   📤 Verification started successfully`);
             return true;
         } else {
-            console.log(`   ⚠️ API response: ${result.substring(0, 100)}`);
+            console.log(`   ⚠️ API response: ${result.substring(0, 200)}`);
             return false;
         }
     } catch (error) {
