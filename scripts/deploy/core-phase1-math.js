@@ -27,7 +27,7 @@ function createStandardJsonInput(contractName, flattenedSource) {
             },
             evmVersion: "shanghai",
             metadata: {
-                bytecodeHash: "none",
+                bytecodeHash: "ipfs",
                 useLiteralContent: false,
                 appendCBOR: true
             },
