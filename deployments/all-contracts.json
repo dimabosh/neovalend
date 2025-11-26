@@ -1,7 +1,7 @@
 {
   "network": "neox-testnet",
   "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
-  "timestamp": "2025-11-26T15:50:16.810Z",
+  "timestamp": "2025-11-26T15:56:07.286Z",
   "phase": "core-2.5-completed",
   "libraries": {
     "WadRayMath": "0x3BFF3E7a3F38091465b23230fd695fd92878049E",
@@ -16,7 +16,8 @@
     "ReserveConfiguration": "0xd536a601019E6025Bac529AcCA6940362745c8a1",
     "ConfiguratorLogic": "0x72b8aCDeF8AcD2846D69c68E9b0E12a22afce1bB",
     "LiquidationLogic": "0x3d2A84f14c34C8d704D4a692598022B8Ec0782aa",
-    "PoolLogic": "0x151Fd5429c72697Ac6Be9E9e8D5d87221229289e"
+    "PoolLogic": "0x151Fd5429c72697Ac6Be9E9e8D5d87221229289e",
+    "IsolationModeLogic": "0xA8AF4f6D8F2Cc57faA02f0f49e748cA27F3b910b"
   },
   "contracts": {
     "PoolAddressesProvider": "0x547131d90dd9EfB1cFC253038788De5a5C2bC1Ba",
