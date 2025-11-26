@@ -113,8 +113,8 @@ async function deployCorePhase1() {
 
             let foundryCommand;
             if (isNeoX) {
-                // NEO X: --legacy для non-EIP1559 сетей
-                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json --use 0.8.27`;
+                // NEO X: --legacy + --verify в forge create (отправляет только нужный файл)
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --verify --verifier blockscout --verifier-url ${verifierUrl} --broadcast --json --use 0.8.27`;
             } else {
                 foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27`;
             }
@@ -173,54 +173,52 @@ async function deployCorePhase1() {
 
                 console.log(`✅ ${libConfig.name}: ${contractAddress}`);
 
-                // Верификация через forge verify-contract
+                // Проверяем верификацию через Blockscout API и делаем retry если нужно
                 if (isNeoX) {
-                    console.log(`   🔍 Verifying on Blockscout...`);
+                    console.log(`   🔍 Checking verification status...`);
 
-                    // Ждем 15 секунд чтобы Blockscout проиндексировал контракт
+                    // Ждем 15 секунд чтобы Blockscout проиндексировал
                     await new Promise(resolve => setTimeout(resolve, 15000));
 
-                    const verifyCommand = `forge verify-contract --rpc-url ${process.env.RPC_URL_SEPOLIA} ${contractAddress} ${contractForFoundry} --verifier blockscout --verifier-url ${verifierUrl}`;
-
+                    // Проверяем верификацию через API
                     let verified = false;
                     for (let attempt = 1; attempt <= 3; attempt++) {
                         try {
-                            console.log(`   🔄 Verification attempt ${attempt}/3...`);
-                            const verifyOutput = execSync(verifyCommand, {
-                                stdio: 'pipe',
-                                encoding: 'utf8',
-                                timeout: 120000  // 2 минуты на попытку
-                            });
+                            const checkUrl = `https://xt4scan.ngd.network/api/v2/smart-contracts/${contractAddress}`;
+                            const checkResult = execSync(`curl -s "${checkUrl}"`, { encoding: 'utf8' });
+                            const contractInfo = JSON.parse(checkResult);
 
-                            console.log(`   📥 ${verifyOutput.replace(/\n/g, ' ').substring(0, 200)}`);
-
-                            if (verifyOutput.includes('Successfully') || verifyOutput.includes('verified') || verifyOutput.includes('success')) {
-                                console.log(`   ✅ Verified!`);
+                            if (contractInfo.is_verified && contractInfo.name === libConfig.name) {
+                                console.log(`   ✅ Verified as ${contractInfo.name}`);
                                 verified = true;
                                 break;
-                            }
-                        } catch (verifyError) {
-                            const errMsg = verifyError.stderr ? verifyError.stderr.toString() : '';
-                            const stdOut = verifyError.stdout ? verifyError.stdout.toString() : '';
-                            const output = errMsg + stdOut;
-
-                            console.log(`   📥 ${output.replace(/\n/g, ' ').substring(0, 200)}`);
-
-                            if (output.includes('Already Verified') || output.includes('already verified')) {
-                                console.log(`   ✅ Already verified!`);
-                                verified = true;
-                                break;
+                            } else if (contractInfo.is_verified) {
+                                console.log(`   ⚠️ Verified but as wrong name: ${contractInfo.name}`);
+                            } else {
+                                console.log(`   ⚠️ Not verified yet, attempt ${attempt}/3`);
                             }
 
+                            if (!verified && attempt < 3) {
+                                console.log(`   🔄 Retrying verification...`);
+                                const verifyCommand = `forge verify-contract --rpc-url ${process.env.RPC_URL_SEPOLIA} ${contractAddress} ${contractForFoundry} --verifier blockscout --verifier-url ${verifierUrl}`;
+                                try {
+                                    execSync(verifyCommand, { stdio: 'pipe', encoding: 'utf8', timeout: 120000 });
+                                } catch (e) {
+                                    // Ignore errors, will check status on next iteration
+                                }
+                                console.log(`   ⏳ Waiting 20s...`);
+                                await new Promise(resolve => setTimeout(resolve, 20000));
+                            }
+                        } catch (checkError) {
+                            console.log(`   ⚠️ Check failed: ${checkError.message}`);
                             if (attempt < 3) {
-                                console.log(`   ⏳ Waiting 30s before retry...`);
-                                await new Promise(resolve => setTimeout(resolve, 30000));
+                                await new Promise(resolve => setTimeout(resolve, 10000));
                             }
                         }
                     }
 
                     if (!verified) {
-                        console.log(`   ⚠️ Verification failed after 3 attempts`);
+                        console.log(`   ⚠️ Verification incomplete - may need manual check`);
                     }
                 }
 
