@@ -482,7 +482,7 @@ async function deployCorePhase2_5() {
 
                 // Верификация через Standard Input API для NEO X
                 if (isNeoX) {
-                    console.log(`   🔍 Starting verification via Standard Input API...`);
+                    console.log(`   🔍 Starting verification via Flattened Code API...`);
 
                     // Ждём индексацию на Blockscout
                     await new Promise(resolve => setTimeout(resolve, 15000));
