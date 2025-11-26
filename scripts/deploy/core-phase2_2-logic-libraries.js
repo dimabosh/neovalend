@@ -95,26 +95,52 @@ function createStandardJsonInput(contractName, flattenedSource) {
 
 /**
  * Верифицирует контракт через Blockscout Standard Input API
- * ТОЧНАЯ КОПИЯ из Phase 1 (которая работает!)
+ *
+ * ВАЖНО для IsolationModeLogic:
+ * - Blockscout берёт ПЕРВУЮ библиотеку в flattened source с matching bytecode
+ * - DataTypes идёт первым (как зависимость) → контракт верифицируется как DataTypes
+ * - Решение: переименовать DataTypes в ZZZ_DataTypes чтобы IsolationModeLogic шёл первым
  */
 async function verifyViaStandardInput(contractAddress, contractName, contractPath, verifierBaseUrl) {
     console.log(`   🔄 Verifying via Standard Input API...`);
 
     try {
         // 1. Flatten source code
-        const flattenedSource = execSync(`forge flatten "${contractPath}"`, {
+        let flattenedSource = execSync(`forge flatten "${contractPath}"`, {
             encoding: 'utf8',
             stdio: ['pipe', 'pipe', 'pipe']
         });
 
-        // 2. Create Standard JSON Input
+        // 2. СПЕЦИАЛЬНАЯ ОБРАБОТКА для IsolationModeLogic
+        // Проблема: DataTypes и IsolationModeLogic имеют идентичный пустой bytecode (90 символов)
+        // Blockscout берёт первую библиотеку в source с matching bytecode
+        // DataTypes идёт первым → IsolationModeLogic верифицируется как DataTypes
+        // Решение: переименовать DataTypes чтобы IsolationModeLogic был первым с таким именем
+        if (contractName === 'IsolationModeLogic') {
+            console.log(`   🔧 Applying DataTypes rename fix for IsolationModeLogic...`);
+
+            // Переименовываем library DataTypes в library ZZZ_DataTypes
+            // Это НЕ меняет bytecode - имена библиотек не входят в runtime code
+            flattenedSource = flattenedSource.replace(/library DataTypes\s*\{/g, 'library ZZZ_DataTypes {');
+            flattenedSource = flattenedSource.replace(/DataTypes\./g, 'ZZZ_DataTypes.');
+            flattenedSource = flattenedSource.replace(/using ZZZ_DataTypes for/g, 'using ZZZ_DataTypes for');
+
+            // Также переименуем Errors чтобы точно IsolationModeLogic был первым
+            flattenedSource = flattenedSource.replace(/library Errors\s*\{/g, 'library ZZZ_Errors {');
+            flattenedSource = flattenedSource.replace(/Errors\./g, 'ZZZ_Errors.');
+            flattenedSource = flattenedSource.replace(/Errors\.(\w+)\(\)/g, 'ZZZ_Errors.$1()');
+
+            console.log(`   ✅ DataTypes → ZZZ_DataTypes, Errors → ZZZ_Errors`);
+        }
+
+        // 3. Create Standard JSON Input
         const stdJsonInput = createStandardJsonInput(contractName, flattenedSource);
 
-        // 3. Save to temp file (required for multipart upload)
+        // 4. Save to temp file (required for multipart upload)
         const tempFile = path.join(os.tmpdir(), `${contractName}_input.json`);
         fs.writeFileSync(tempFile, JSON.stringify(stdJsonInput));
 
-        // 4. Submit via curl multipart form
+        // 5. Submit via curl multipart form
         const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
 
         const curlCmd = `curl -s -L -X POST "${apiUrl}" \
