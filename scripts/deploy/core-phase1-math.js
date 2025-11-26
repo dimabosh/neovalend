@@ -173,12 +173,13 @@ async function deployCorePhase1() {
 
                 console.log(`✅ ${libConfig.name}: ${contractAddress}`);
 
-                // Проверяем верификацию через Blockscout API и делаем retry если нужно
+                // Проверяем верификацию через Blockscout API
+                // Используем прямой API вызов с flattened code и явным contract_name
                 if (isNeoX) {
                     console.log(`   🔍 Checking verification status...`);
 
-                    // Ждем 15 секунд чтобы Blockscout проиндексировал
-                    await new Promise(resolve => setTimeout(resolve, 15000));
+                    // Ждем 20 секунд чтобы Blockscout проиндексировал
+                    await new Promise(resolve => setTimeout(resolve, 20000));
 
                     // Проверяем верификацию через API
                     let verified = false;
@@ -193,27 +194,47 @@ async function deployCorePhase1() {
                                 verified = true;
                                 break;
                             } else if (contractInfo.is_verified) {
-                                // Контракт уже верифицирован, но с другим именем
-                                // НЕ делаем retry - forge verify-contract отправляет все source files
-                                // и может перезаписать верификацию неправильным контрактом
-                                console.log(`   ⚠️ Verified but as wrong name: ${contractInfo.name}`);
-                                console.log(`   ℹ️  Skipping retry - already verified (retry may make it worse)`);
-                                break; // Выходим из цикла - повторные попытки не помогут
+                                // Уже верифицирован с другим именем - не перезаписываем
+                                console.log(`   ⚠️ Already verified as: ${contractInfo.name}`);
+                                console.log(`   ℹ️  Skipping retry to avoid overwriting`);
+                                break;
                             } else {
-                                console.log(`   ⚠️ Not verified yet, attempt ${attempt}/3`);
-                            }
+                                console.log(`   ⏳ Not verified yet (attempt ${attempt}/3)`);
 
-                            // Retry ТОЛЬКО если контракт НЕ верифицирован вообще
-                            if (!contractInfo.is_verified && attempt < 3) {
-                                console.log(`   🔄 Retrying verification...`);
-                                const verifyCommand = `forge verify-contract --rpc-url ${process.env.RPC_URL_SEPOLIA} ${contractAddress} ${contractForFoundry} --verifier blockscout --verifier-url ${verifierUrl}`;
-                                try {
-                                    execSync(verifyCommand, { stdio: 'pipe', encoding: 'utf8', timeout: 120000 });
-                                } catch (e) {
-                                    // Ignore errors, will check status on next iteration
+                                // Retry через прямой Blockscout API с flattened code
+                                if (attempt < 3) {
+                                    console.log(`   🔄 Retrying via Blockscout API (flattened)...`);
+                                    try {
+                                        // Получаем flattened source code
+                                        const flattenedCode = execSync(`forge flatten "${libConfig.path}"`, {
+                                            encoding: 'utf8',
+                                            stdio: ['pipe', 'pipe', 'pipe']
+                                        });
+
+                                        // Формируем JSON для API
+                                        const verifyPayload = {
+                                            compiler_version: "v0.8.27+commit.40a35a09",
+                                            license_type: "none",
+                                            source_code: flattenedCode,
+                                            is_optimization_enabled: true,
+                                            optimization_runs: 200,
+                                            contract_name: libConfig.name,
+                                            evm_version: "shanghai",
+                                            autodetect_constructor_args: true
+                                        };
+
+                                        // Отправляем на верификацию
+                                        const apiUrl = `https://xt4scan.ngd.network/api/v2/smart-contracts/${contractAddress}/verification/via/flattened-code`;
+                                        const curlCmd = `curl -s -X POST "${apiUrl}" -H "Content-Type: application/json" -d '${JSON.stringify(verifyPayload).replace(/'/g, "'\\''")}'`;
+
+                                        const apiResult = execSync(curlCmd, { encoding: 'utf8', timeout: 60000 });
+                                        console.log(`   📤 API response: ${apiResult.substring(0, 100)}`);
+                                    } catch (e) {
+                                        console.log(`   ⚠️ API verify failed: ${e.message?.substring(0, 80) || 'unknown'}`);
+                                    }
+                                    console.log(`   ⏳ Waiting 20s...`);
+                                    await new Promise(resolve => setTimeout(resolve, 20000));
                                 }
-                                console.log(`   ⏳ Waiting 20s...`);
-                                await new Promise(resolve => setTimeout(resolve, 20000));
                             }
                         } catch (checkError) {
                             console.log(`   ⚠️ Check failed: ${checkError.message}`);
