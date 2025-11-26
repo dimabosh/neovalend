@@ -94,12 +94,56 @@ function createStandardJsonInput(contractName, flattenedSource) {
 }
 
 /**
+ * Извлекает полную библиотеку из flattened source по имени
+ * Находит "library NAME {" и весь код до закрывающей скобки
+ */
+function extractLibrary(source, libraryName) {
+    // Ищем начало библиотеки
+    const startPattern = new RegExp(`library\\s+${libraryName}\\s*\\{`);
+    const startMatch = source.match(startPattern);
+
+    if (!startMatch) {
+        return null;
+    }
+
+    const startIndex = source.indexOf(startMatch[0]);
+
+    // Находим закрывающую скобку библиотеки (подсчитываем вложенность)
+    let braceCount = 0;
+    let endIndex = -1;
+    let inLibrary = false;
+
+    for (let i = startIndex; i < source.length; i++) {
+        if (source[i] === '{') {
+            braceCount++;
+            inLibrary = true;
+        } else if (source[i] === '}') {
+            braceCount--;
+            if (inLibrary && braceCount === 0) {
+                endIndex = i + 1;
+                break;
+            }
+        }
+    }
+
+    if (endIndex === -1) {
+        return null;
+    }
+
+    return {
+        code: source.substring(startIndex, endIndex),
+        startIndex: startIndex,
+        endIndex: endIndex
+    };
+}
+
+/**
  * Верифицирует контракт через Blockscout Standard Input API
  *
  * ВАЖНО для IsolationModeLogic:
  * - Blockscout берёт ПЕРВУЮ библиотеку в flattened source с matching bytecode
  * - DataTypes идёт первым (как зависимость) → контракт верифицируется как DataTypes
- * - Решение: переименовать DataTypes в ZZZ_DataTypes чтобы IsolationModeLogic шёл первым
+ * - Решение: переставить IsolationModeLogic ПЕРВЫМ в файле (после pragma/imports)
  */
 async function verifyViaStandardInput(contractAddress, contractName, contractPath, verifierBaseUrl) {
     console.log(`   🔄 Verifying via Standard Input API...`);
@@ -112,25 +156,41 @@ async function verifyViaStandardInput(contractAddress, contractName, contractPat
         });
 
         // 2. СПЕЦИАЛЬНАЯ ОБРАБОТКА для IsolationModeLogic
-        // Проблема: DataTypes и IsolationModeLogic имеют идентичный пустой bytecode (90 символов)
-        // Blockscout берёт первую библиотеку в source с matching bytecode
-        // DataTypes идёт первым → IsolationModeLogic верифицируется как DataTypes
-        // Решение: переименовать DataTypes чтобы IsolationModeLogic был первым с таким именем
+        // Проблема: DataTypes, Errors и IsolationModeLogic имеют идентичный пустой bytecode
+        // Blockscout берёт ПЕРВУЮ библиотеку в source с matching bytecode
+        // DataTypes идёт первым (как зависимость) → IsolationModeLogic верифицируется как DataTypes
+        // РЕШЕНИЕ: Переставить IsolationModeLogic ПЕРВЫМ в файле!
         if (contractName === 'IsolationModeLogic') {
-            console.log(`   🔧 Applying DataTypes rename fix for IsolationModeLogic...`);
+            console.log(`   🔧 Reordering: Moving IsolationModeLogic to the BEGINNING of the file...`);
 
-            // Переименовываем library DataTypes в library ZZZ_DataTypes
-            // Это НЕ меняет bytecode - имена библиотек не входят в runtime code
-            flattenedSource = flattenedSource.replace(/library DataTypes\s*\{/g, 'library ZZZ_DataTypes {');
-            flattenedSource = flattenedSource.replace(/DataTypes\./g, 'ZZZ_DataTypes.');
-            flattenedSource = flattenedSource.replace(/using ZZZ_DataTypes for/g, 'using ZZZ_DataTypes for');
+            // Извлекаем библиотеку IsolationModeLogic
+            const isolationLib = extractLibrary(flattenedSource, 'IsolationModeLogic');
 
-            // Также переименуем Errors чтобы точно IsolationModeLogic был первым
-            flattenedSource = flattenedSource.replace(/library Errors\s*\{/g, 'library ZZZ_Errors {');
-            flattenedSource = flattenedSource.replace(/Errors\./g, 'ZZZ_Errors.');
-            flattenedSource = flattenedSource.replace(/Errors\.(\w+)\(\)/g, 'ZZZ_Errors.$1()');
+            if (isolationLib) {
+                // Удаляем библиотеку из её текущей позиции
+                flattenedSource = flattenedSource.substring(0, isolationLib.startIndex) +
+                                  flattenedSource.substring(isolationLib.endIndex);
 
-            console.log(`   ✅ DataTypes → ZZZ_DataTypes, Errors → ZZZ_Errors`);
+                // Находим позицию после всех pragma и license (первый contract/library/interface)
+                // Ищем первое появление "library " или "contract " или "interface "
+                const insertPoint = flattenedSource.search(/\n(library|contract|interface)\s+\w+/);
+
+                if (insertPoint !== -1) {
+                    // Вставляем IsolationModeLogic ПЕРВЫМ (перед всеми другими библиотеками)
+                    flattenedSource = flattenedSource.substring(0, insertPoint + 1) +
+                                      '\n// MOVED TO TOP FOR BLOCKSCOUT VERIFICATION\n' +
+                                      isolationLib.code +
+                                      '\n\n' +
+                                      flattenedSource.substring(insertPoint + 1);
+
+                    console.log(`   ✅ IsolationModeLogic moved to position ${insertPoint + 1}`);
+                    console.log(`   📄 Now it will be the FIRST library with matching bytecode`);
+                } else {
+                    console.log(`   ⚠️ Could not find insert point, keeping original order`);
+                }
+            } else {
+                console.log(`   ⚠️ Could not extract IsolationModeLogic library`);
+            }
         }
 
         // 3. Create Standard JSON Input
