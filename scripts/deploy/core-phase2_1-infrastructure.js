@@ -1,9 +1,149 @@
 const { ethers } = require('ethers');
 const fs = require('fs');
 const { execSync } = require('child_process');
+const path = require('path');
+const os = require('os');
 
 // CORE Phase 2.2: ACLManager, Oracle, InterestRateStrategy
 // Depends on Phase 2.1 (PoolAddressesProvider with ACL Admin)
+// Верификация через Standard JSON Input API с поддержкой constructor args
+
+/**
+ * Создаёт Standard JSON Input для верификации через Blockscout API
+ */
+function createStandardJsonInput(contractName, flattenedSource) {
+    return {
+        language: "Solidity",
+        sources: {
+            [`${contractName}.sol`]: {
+                content: flattenedSource
+            }
+        },
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200
+            },
+            evmVersion: "shanghai",
+            metadata: {
+                bytecodeHash: "none",
+                useLiteralContent: false,
+                appendCBOR: true
+            },
+            viaIR: false,
+            outputSelection: {
+                "*": {
+                    "*": ["abi", "evm.bytecode", "evm.deployedBytecode", "metadata"]
+                }
+            }
+        }
+    };
+}
+
+/**
+ * Верифицирует контракт через Blockscout Standard Input API
+ */
+async function verifyViaStandardInput(contractAddress, contractName, contractPath, verifierBaseUrl, constructorArgsHex = null) {
+    console.log(`   🔄 Verifying via Standard Input API...`);
+
+    try {
+        const flattenedSource = execSync(`forge flatten "${contractPath}"`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe']
+        });
+
+        const stdJsonInput = createStandardJsonInput(contractName, flattenedSource);
+        const tempFile = path.join(os.tmpdir(), `${contractName}_input.json`);
+        fs.writeFileSync(tempFile, JSON.stringify(stdJsonInput));
+
+        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
+
+        let curlCmd = `curl -s -L -X POST "${apiUrl}" \
+            --form 'compiler_version=v0.8.27+commit.40a35a09' \
+            --form 'contract_name=${contractName}' \
+            --form 'license_type=none' \
+            --form 'files[0]=@${tempFile};filename=input.json;type=application/json'`;
+
+        if (constructorArgsHex) {
+            curlCmd += ` --form 'constructor_args=${constructorArgsHex}'`;
+        }
+
+        const result = execSync(curlCmd, { encoding: 'utf8', timeout: 60000 });
+        try { fs.unlinkSync(tempFile); } catch (e) {}
+
+        const response = JSON.parse(result);
+        if (response.message === "Smart-contract verification started") {
+            console.log(`   📤 Verification started successfully`);
+            return true;
+        } else {
+            console.log(`   ⚠️ API response: ${result.substring(0, 100)}`);
+            return false;
+        }
+    } catch (error) {
+        console.log(`   ⚠️ Standard Input verification failed: ${error.message?.substring(0, 80) || 'unknown'}`);
+        return false;
+    }
+}
+
+/**
+ * Проверяет статус верификации контракта
+ */
+async function checkVerificationStatus(contractAddress, expectedName, verifierBaseUrl) {
+    try {
+        const checkUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}`;
+        const result = execSync(`curl -s "${checkUrl}"`, { encoding: 'utf8' });
+        const contractInfo = JSON.parse(result);
+
+        return {
+            isVerified: contractInfo.is_verified === true,
+            isPartiallyVerified: contractInfo.is_partially_verified === true,
+            name: contractInfo.name,
+            nameMatches: contractInfo.name === expectedName
+        };
+    } catch (error) {
+        return { isVerified: false, isPartiallyVerified: false, name: null, nameMatches: false };
+    }
+}
+
+/**
+ * Кодирует constructor args для Blockscout API (hex без 0x)
+ */
+function encodeConstructorArgsForContract(contractName, constructorArgs, poolAddressesProvider) {
+    try {
+        let types;
+        let args;
+
+        switch (contractName) {
+            case 'ACLManager':
+                // ACLManager(IPoolAddressesProvider provider)
+                types = ['address'];
+                args = [poolAddressesProvider];
+                break;
+            case 'AaveOracle':
+                // AaveOracle(IPoolAddressesProvider provider, address[] assets, address[] sources, address fallbackOracle, address baseCurrency, uint256 baseCurrencyUnit)
+                types = ['address', 'address[]', 'address[]', 'address', 'address', 'uint256'];
+                args = constructorArgs;
+                break;
+            case 'DefaultReserveInterestRateStrategyV2':
+                // Constructor takes provider + many uint256 params
+                types = ['address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256'];
+                args = constructorArgs;
+                break;
+            default:
+                return null;
+        }
+
+        const argsEncoded = execSync(
+            `cast abi-encode "constructor(${types.join(',')})" ${args.map(a => `"${a}"`).join(' ')}`,
+            { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+        ).trim();
+
+        return argsEncoded.startsWith('0x') ? argsEncoded.slice(2) : argsEncoded;
+    } catch (e) {
+        console.log(`   ⚠️ Constructor args encoding failed: ${e.message}`);
+        return null;
+    }
+}
 
 async function deployCorePhase2_2() {
     console.log('🚀 CORE Phase 2.2: Infrastructure (ACL, Oracle, Rates)');
@@ -128,22 +268,25 @@ async function deployCorePhase2_2() {
 
         console.log(`🚀 Deploying ${contractConfig.name}...`);
 
+        // Network configuration
+        const network = process.env.NETWORK || 'sepolia';
+        const isNeoX = network.includes('neox');
+
+        // Blockscout URLs для верификации
+        const verifierBaseUrl = network === 'neox-mainnet'
+            ? 'https://xexplorer.neo.org'
+            : 'https://xt4scan.ngd.network';
+
         try {
             const contractForFoundry = contractConfig.path + ':' + contractConfig.name;
 
-            // ✅ ПРАВИЛЬНЫЙ ПОРЯДОК флагов согласно CLAUDE.md Phase 2.1 Lesson #7
-            // Базовая команда БЕЗ constructor args
-            const network = process.env.NETWORK || 'sepolia';
-            const isNeoX = network.includes('neox');
-
+            // Деплой БЕЗ встроенной верификации forge для NEO X
+            // Верификация будет через Standard Input API отдельно с constructor args
             let deployCommand;
             if (isNeoX) {
-                // NEO X: Verification via Blockscout
-                const verifierUrl = network === 'neox-mainnet'
-                    ? 'https://xexplorer.neo.org/api'
-                    : 'https://xt4scan.ngd.network/api';
-                deployCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --verifier blockscout --verifier-url ${verifierUrl} --broadcast --json --use 0.8.27`;
-                console.log(`🌐 Deploying to NEO X (${network}) - Blockscout verification`);
+                // NEO X: --legacy для транзакций, БЕЗ --verify (верификация отдельно)
+                deployCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json --use 0.8.27`;
+                console.log(`🌐 Deploying to NEO X (${network}) - Legacy tx mode`);
             } else {
                 // Ethereum networks: верификация через Etherscan
                 deployCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27`;
@@ -159,26 +302,21 @@ async function deployCorePhase2_2() {
             console.log(`🔧 Using Solidity 0.8.27 for Aave v3.5 compatibility`);
             console.log(`📋 Constructor args:`, contractConfig.constructor);
 
-            // 🔥 КРИТИЧНО: Try-catch для обработки ошибок forge (как в Phase 1)
+            // Try-catch для обработки ошибок forge
             let foundryOutput;
             try {
                 foundryOutput = execSync(deployCommand, {
                     stdio: 'pipe',
                     encoding: 'utf8',
-                    maxBuffer: 50 * 1024 * 1024
+                    maxBuffer: 50 * 1024 * 1024,
+                    timeout: 180000  // 3 минуты
                 });
-                console.log('✅ Deployment successful!');
+                console.log('   📥 Deployed successfully');
             } catch (execError) {
-                // Forge может упасть на верификации, но деплой может быть успешным
-                console.log('⚠️ Forge command exited with error, but deployment may have succeeded');
                 foundryOutput = execError.stdout ? execError.stdout.toString() : '';
-                if (execError.stderr) {
-                    console.log('📥 Forge stderr:', execError.stderr.toString().substring(0, 500));
-                }
+                const stderr = execError.stderr ? execError.stderr.toString() : '';
+                console.log(`   ⚠️ ${(stderr || foundryOutput).replace(/\n/g, ' ').substring(0, 200)}`);
             }
-
-            console.log('Raw Foundry Output:');
-            console.log(foundryOutput);
 
             // Parse address
             let contractAddress = null;
@@ -233,7 +371,67 @@ async function deployCorePhase2_2() {
                 console.log('🔄 Continuing anyway - contract may still be valid');
             }
 
-            console.log('✅ Verified on Etherscan\n');
+            // Верификация через Standard Input API с constructor args (для NEO X)
+            if (isNeoX) {
+                console.log(`   🔍 Starting verification via Standard Input API...`);
+
+                // Ждём индексацию на Blockscout
+                await new Promise(resolve => setTimeout(resolve, 15000));
+
+                // Кодируем constructor args в hex
+                const constructorArgsHex = encodeConstructorArgsForContract(
+                    contractConfig.name,
+                    contractConfig.constructor,
+                    POOL_ADDRESSES_PROVIDER
+                );
+
+                if (constructorArgsHex) {
+                    console.log(`   📋 Constructor args hex: ${constructorArgsHex.substring(0, 40)}...`);
+                }
+
+                // Отправляем верификацию
+                await verifyViaStandardInput(
+                    contractAddress,
+                    contractConfig.name,
+                    contractConfig.path,
+                    verifierBaseUrl,
+                    constructorArgsHex
+                );
+
+                // Ждём обработки
+                await new Promise(resolve => setTimeout(resolve, 20000));
+
+                // Проверяем результат
+                let verified = false;
+                for (let attempt = 1; attempt <= 3; attempt++) {
+                    const status = await checkVerificationStatus(contractAddress, contractConfig.name, verifierBaseUrl);
+
+                    if (status.isVerified && status.nameMatches) {
+                        console.log(`   ✅ Verified as ${status.name}`);
+                        verified = true;
+                        break;
+                    } else if (status.isVerified && !status.nameMatches) {
+                        console.log(`   ⚠️ Verified but as: ${status.name} (expected: ${contractConfig.name})`);
+                        if (attempt < 3) {
+                            console.log(`   🔄 Retrying verification (attempt ${attempt + 1}/3)...`);
+                            await verifyViaStandardInput(contractAddress, contractConfig.name, contractConfig.path, verifierBaseUrl, constructorArgsHex);
+                            await new Promise(resolve => setTimeout(resolve, 20000));
+                        }
+                    } else {
+                        console.log(`   ⏳ Not verified yet (attempt ${attempt}/3)`);
+                        if (attempt < 3) {
+                            await verifyViaStandardInput(contractAddress, contractConfig.name, contractConfig.path, verifierBaseUrl, constructorArgsHex);
+                            await new Promise(resolve => setTimeout(resolve, 20000));
+                        }
+                    }
+                }
+
+                if (!verified) {
+                    console.log(`   ⚠️ Verification may need manual check`);
+                }
+            } else {
+                console.log('✅ Verified on Etherscan\n');
+            }
 
             // Save progress
             deployments.contracts[contractConfig.name] = contractAddress;
@@ -258,12 +456,17 @@ async function deployCorePhase2_2() {
     console.log('\n🔧 Registering contracts in PoolAddressesProvider...');
     console.log('====================================================');
 
+    // Определяем network для --legacy флага
+    const networkForReg = process.env.NETWORK || 'sepolia';
+    const isNeoXForReg = networkForReg.includes('neox');
+    const legacyFlag = isNeoXForReg ? ' --legacy' : '';
+
     // Регистрация ACLManager
     if (deployments.contracts['ACLManager']) {
         console.log('\n📋 Registering ACLManager...');
 
         try {
-            const setACLCommand = `cast send ${POOL_ADDRESSES_PROVIDER} "setACLManager(address)" ${deployments.contracts['ACLManager']} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --gas-limit 200000`;
+            const setACLCommand = `cast send ${POOL_ADDRESSES_PROVIDER} "setACLManager(address)" ${deployments.contracts['ACLManager']} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --gas-limit 200000${legacyFlag}`;
 
             execSync(setACLCommand, { encoding: 'utf8', stdio: 'pipe' });
             console.log('✅ ACLManager registered in PoolAddressesProvider!');
@@ -289,7 +492,7 @@ async function deployCorePhase2_2() {
         console.log('\n📋 Registering AaveOracle...');
 
         try {
-            const setOracleCommand = `cast send ${POOL_ADDRESSES_PROVIDER} "setPriceOracle(address)" ${deployments.contracts['AaveOracle']} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --gas-limit 200000`;
+            const setOracleCommand = `cast send ${POOL_ADDRESSES_PROVIDER} "setPriceOracle(address)" ${deployments.contracts['AaveOracle']} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --gas-limit 200000${legacyFlag}`;
 
             execSync(setOracleCommand, { encoding: 'utf8', stdio: 'pipe' });
             console.log('✅ AaveOracle registered in PoolAddressesProvider!');
