@@ -1,8 +1,8 @@
 {
   "network": "neox-testnet",
   "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
-  "timestamp": "2025-11-26T13:18:12.700Z",
-  "phase": "core-2.1-completed",
+  "timestamp": "2025-11-26T13:35:20.180Z",
+  "phase": "core-2.2-completed",
   "libraries": {
     "WadRayMath": "0x3BFF3E7a3F38091465b23230fd695fd92878049E",
     "PercentageMath": "0x7Efc7985A1F0665BDd2Da52cd166F870DB815e58",
@@ -21,7 +21,10 @@
   },
   "contracts": {
     "PoolAddressesProvider": "0x547131d90dd9EfB1cFC253038788De5a5C2bC1Ba",
-    "ACLAdmin": "0x9876d5A1601D2E796e8Ed5151527609938070d9f"
+    "ACLAdmin": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
+    "ACLManager": "0x4dea05b5392D48256f2f3572c92559ad0eAa8459",
+    "AaveOracle": "0x6e6A9582dc97827621312bEb6095FDCEBFB4679A",
+    "DefaultReserveInterestRateStrategyV2": "0xB9b6e54BE8a948eeF0653E6CE3eB67138216fE07"
   },
   "_old_deployment": {
     "comment": "Previous deployment with verification issues - kept for reference",
