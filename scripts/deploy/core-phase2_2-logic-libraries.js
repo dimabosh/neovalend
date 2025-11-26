@@ -102,29 +102,45 @@ function createMultiFileStandardJsonInput(contractPath, contractName) {
 }
 
 /**
- * Верифицирует контракт через Blockscout Standard Input API (multi-file)
+ * Верифицирует контракт через Blockscout Flattened Code API
+ * Использует flattened source с явным указанием contract_name
  */
 async function verifyViaStandardInput(contractAddress, contractName, contractPath, verifierBaseUrl) {
-    console.log(`   🔄 Verifying via Standard Input API (multi-file)...`);
+    console.log(`   🔄 Verifying via Flattened Code API...`);
 
     try {
-        // 1. Create Standard JSON Input with all dependencies
-        const stdJsonInput = createMultiFileStandardJsonInput(contractPath, contractName);
+        // 1. Flatten source code
+        const flattenedSource = execSync(`forge flatten "${contractPath}"`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+            maxBuffer: 10 * 1024 * 1024
+        });
 
-        // 2. Save to temp file (required for multipart upload)
-        const tempFile = path.join(os.tmpdir(), `${contractName}_input.json`);
-        fs.writeFileSync(tempFile, JSON.stringify(stdJsonInput));
+        // 2. Submit via Flattened Code API (NOT Standard Input)
+        // This endpoint respects contract_name parameter
+        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/flattened-code`;
 
-        // 3. Submit via curl multipart form
-        // contractName должен включать путь к файлу: "path/to/Contract.sol:ContractName"
-        const fullContractName = `${contractPath}:${contractName}`;
-        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
+        // Escape source code for JSON
+        const escapedSource = JSON.stringify(flattenedSource);
+
+        const payload = {
+            compiler_version: "v0.8.27+commit.40a35a09",
+            source_code: flattenedSource,
+            is_optimization_enabled: true,
+            optimization_runs: 200,
+            contract_name: contractName,  // Явное имя контракта!
+            evm_version: "shanghai",
+            autodetect_constructor_args: true,
+            license_type: "none"
+        };
+
+        // Save payload to temp file for curl
+        const tempFile = path.join(os.tmpdir(), `${contractName}_flatten.json`);
+        fs.writeFileSync(tempFile, JSON.stringify(payload));
 
         const curlCmd = `curl -s -L -X POST "${apiUrl}" \
-            --form 'compiler_version=v0.8.27+commit.40a35a09' \
-            --form 'contract_name=${fullContractName}' \
-            --form 'license_type=none' \
-            --form 'files[0]=@${tempFile};filename=input.json;type=application/json'`;
+            -H "Content-Type: application/json" \
+            -d @${tempFile}`;
 
         const result = execSync(curlCmd, { encoding: 'utf8', timeout: 120000 });
 
@@ -135,12 +151,15 @@ async function verifyViaStandardInput(contractAddress, contractName, contractPat
         if (response.message === "Smart-contract verification started") {
             console.log(`   📤 Verification started successfully`);
             return true;
+        } else if (response.is_verified) {
+            console.log(`   ✅ Already verified`);
+            return true;
         } else {
             console.log(`   ⚠️ API response: ${result.substring(0, 200)}`);
             return false;
         }
     } catch (error) {
-        console.log(`   ⚠️ Standard Input verification failed: ${error.message?.substring(0, 80) || 'unknown'}`);
+        console.log(`   ⚠️ Flattened Code verification failed: ${error.message?.substring(0, 80) || 'unknown'}`);
         return false;
     }
 }
