@@ -150,8 +150,8 @@ jobs:
         run: |
           npm install
           npm install ethers@6 solc@${{ env.SOLC_VERSION }}
-          npm install @openzeppelin/contracts@4.9.0
-          npm install @openzeppelin/contracts-upgradeable@4.3.2
+          npm install @openzeppelin/contracts@5.1.0
+          npm install @openzeppelin/contracts-upgradeable@5.1.0
 
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -199,8 +199,9 @@ jobs:
         run: |
           npm install
           npm install ethers@6 solc@${{ env.SOLC_VERSION }}
-          npm install @openzeppelin/contracts@4.9.0
-          npm install @openzeppelin/contracts-upgradeable@4.3.2
+          npm install @openzeppelin/contracts@5.1.0
+          npm install @openzeppelin/contracts-upgradeable@5.1.0
+          # OpenZeppelin 5.1.0 already installed above
 
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -253,8 +254,8 @@ jobs:
         run: |
           npm install
           npm install ethers@6 solc@${{ env.SOLC_VERSION }}
-          npm install @openzeppelin/contracts@4.9.6
-          npm install openzeppelin-contracts@npm:@openzeppelin/contracts@4.9.6
+          npm install @openzeppelin/contracts@5.1.0
+          npm install @openzeppelin/contracts-upgradeable@5.1.0
 
       - name: Deploy CORE Phase 2.2 - Logic Libraries
         env:
@@ -396,7 +397,8 @@ jobs:
         run: |
           npm install
           npm install ethers@6 solc@${{ env.SOLC_VERSION }}
-          npm install @openzeppelin/contracts@4.9.0
+          npm install @openzeppelin/contracts@5.1.0
+          npm install @openzeppelin/contracts-upgradeable@5.1.0
       
       - name: Deploy CORE Phase 4 - Token Implementation
         env:
@@ -487,8 +489,9 @@ jobs:
         run: |
           npm install
           npm install ethers@6 solc@${{ env.SOLC_VERSION }}
-          npm install @openzeppelin/contracts@4.9.0
-          npm install @openzeppelin/contracts-upgradeable@4.3.2
+          npm install @openzeppelin/contracts@5.1.0
+          npm install @openzeppelin/contracts-upgradeable@5.1.0
+          # OpenZeppelin 5.1.0 already installed above
       
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1

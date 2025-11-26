@@ -181,7 +181,7 @@ async function deployCorePhase2_1() {
         name: 'PoolAddressesProvider',
         path: 'contracts/aave-v3-origin/src/contracts/protocol/configuration/PoolAddressesProvider.sol',
         description: 'Main registry contract for Aave v3.5 protocol',
-        constructorArgs: ['A7A5', wallet.address]  // Массив как в Phase 3
+        constructorArgs: ['NeovaLend', wallet.address]  // marketId, owner
     };
 
     console.log(`\n🔍 Processing ${contractConfig.name}...`);
