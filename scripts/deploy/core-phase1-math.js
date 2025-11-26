@@ -13,6 +13,8 @@ const os = require('os');
  * Использует flattened source для избежания "First Match" проблемы
  */
 function createStandardJsonInput(contractName, flattenedSource) {
+    // НЕ передаём metadata settings - пусть Blockscout использует дефолтные
+    // Это соответствует успешно верифицированным контрактам на xt4scan
     return {
         language: "Solidity",
         sources: {
@@ -26,15 +28,9 @@ function createStandardJsonInput(contractName, flattenedSource) {
                 runs: 200
             },
             evmVersion: "shanghai",
-            metadata: {
-                bytecodeHash: "ipfs",
-                useLiteralContent: false,
-                appendCBOR: true
-            },
-            viaIR: false,
             outputSelection: {
                 "*": {
-                    "*": ["abi", "evm.bytecode", "evm.deployedBytecode", "metadata"]
+                    "*": ["abi", "evm.bytecode", "evm.deployedBytecode"]
                 }
             }
         }
