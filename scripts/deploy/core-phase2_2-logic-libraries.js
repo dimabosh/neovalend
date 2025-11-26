@@ -57,30 +57,18 @@ function collectImports(filePath, collected = new Set()) {
 }
 
 /**
- * Создаёт Standard JSON Input для multi-file верификации
+ * Создаёт Standard JSON Input для верификации через Blockscout API
+ * Использует flattened source - ТОЧНО как в Phase 1 (работает!)
  */
-function createMultiFileStandardJsonInput(contractPath, contractName) {
-    // Собрать все зависимости
-    const allFiles = collectImports(contractPath);
-
-    // Создать sources object с правильными путями
-    const sources = {};
-    for (const filePath of allFiles) {
-        const content = fs.readFileSync(filePath, 'utf8');
-        sources[filePath] = { content };
-    }
-
-    console.log(`   📁 Collected ${allFiles.size} source files`);
-
+function createStandardJsonInput(contractName, flattenedSource) {
     return {
         language: "Solidity",
-        sources,
+        sources: {
+            [`${contractName}.sol`]: {
+                content: flattenedSource
+            }
+        },
         settings: {
-            remappings: [
-                "@aave/=contracts/aave-v3-origin/src/contracts/",
-                "aave-v3-origin/=contracts/aave-v3-origin/src/contracts/",
-                "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"
-            ],
             optimizer: {
                 enabled: true,
                 runs: 200
@@ -102,100 +90,36 @@ function createMultiFileStandardJsonInput(contractPath, contractName) {
 }
 
 /**
- * Верифицирует контракт через Blockscout Flattened Code API
- * Удаляет все контракты кроме нужного из flattened source
+ * Верифицирует контракт через Blockscout Standard Input API
+ * ТОЧНАЯ КОПИЯ из Phase 1 (которая работает!)
  */
 async function verifyViaStandardInput(contractAddress, contractName, contractPath, verifierBaseUrl) {
-    console.log(`   🔄 Verifying via Flattened Code API (single contract)...`);
+    console.log(`   🔄 Verifying via Standard Input API...`);
 
     try {
         // 1. Flatten source code
-        let flattenedSource = execSync(`forge flatten "${contractPath}"`, {
+        const flattenedSource = execSync(`forge flatten "${contractPath}"`, {
             encoding: 'utf8',
-            stdio: ['pipe', 'pipe', 'pipe'],
-            maxBuffer: 10 * 1024 * 1024
+            stdio: ['pipe', 'pipe', 'pipe']
         });
 
-        // 2. КРИТИЧНО: Удалить ВСЕ библиотеки/контракты кроме нужного!
-        // Blockscout использует "First Match" алгоритм - выбирает первый контракт с совпадающим bytecode
-        // Библиотеки с только internal функциями имеют одинаковый (пустой) bytecode
-        // Решение: оставить ТОЛЬКО целевой контракт
+        // 2. Create Standard JSON Input
+        const stdJsonInput = createStandardJsonInput(contractName, flattenedSource);
 
-        // Найти все contract/library определения
-        const contractRegex = /^(library|contract|abstract contract|interface)\s+(\w+)/gm;
-        const contracts = [];
-        let match;
-        while ((match = contractRegex.exec(flattenedSource)) !== null) {
-            contracts.push({ type: match[1], name: match[2], index: match.index });
-        }
+        // 3. Save to temp file (required for multipart upload)
+        const tempFile = path.join(os.tmpdir(), `${contractName}_input.json`);
+        fs.writeFileSync(tempFile, JSON.stringify(stdJsonInput));
 
-        console.log(`   📋 Found ${contracts.length} contracts in flattened source`);
-
-        // Найти наш целевой контракт
-        const targetContract = contracts.find(c => c.name === contractName);
-        if (!targetContract) {
-            console.log(`   ⚠️ Target contract ${contractName} not found in source`);
-            // Fallback: отправить как есть
-        } else {
-            // Найти контракты которые нужно УДАЛИТЬ (не interfaces и не наш контракт)
-            // НО нужно оставить interfaces и structs которые использует наш контракт
-            const toRemove = contracts.filter(c =>
-                c.name !== contractName &&
-                c.type !== 'interface' &&
-                // Также оставляем DataTypes т.к. там struct определения
-                c.name !== 'DataTypes' &&
-                c.name !== 'Errors'
-            );
-
-            console.log(`   🗑️ Removing ${toRemove.length} competing contracts: ${toRemove.map(c => c.name).join(', ')}`);
-
-            // Удалить каждый контракт (от начала определения до закрывающей скобки)
-            // Идём с конца чтобы не сбить индексы
-            for (const contract of toRemove.reverse()) {
-                // Найти конец контракта (matching closing brace)
-                let braceCount = 0;
-                let startIdx = flattenedSource.indexOf('{', contract.index);
-                let endIdx = startIdx;
-
-                for (let i = startIdx; i < flattenedSource.length; i++) {
-                    if (flattenedSource[i] === '{') braceCount++;
-                    if (flattenedSource[i] === '}') braceCount--;
-                    if (braceCount === 0) {
-                        endIdx = i + 1;
-                        break;
-                    }
-                }
-
-                // Удалить весь контракт
-                flattenedSource = flattenedSource.slice(0, contract.index) +
-                                  `// Removed: ${contract.name}\n` +
-                                  flattenedSource.slice(endIdx);
-            }
-        }
-
-        // 3. Submit via Flattened Code API
-        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/flattened-code`;
-
-        const payload = {
-            compiler_version: "v0.8.27+commit.40a35a09",
-            source_code: flattenedSource,
-            is_optimization_enabled: true,
-            optimization_runs: 200,
-            contract_name: contractName,
-            evm_version: "shanghai",
-            autodetect_constructor_args: true,
-            license_type: "none"
-        };
-
-        // Save payload to temp file for curl
-        const tempFile = path.join(os.tmpdir(), `${contractName}_flatten.json`);
-        fs.writeFileSync(tempFile, JSON.stringify(payload));
+        // 4. Submit via curl multipart form
+        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
 
         const curlCmd = `curl -s -L -X POST "${apiUrl}" \
-            -H "Content-Type: application/json" \
-            -d @${tempFile}`;
+            --form 'compiler_version=v0.8.27+commit.40a35a09' \
+            --form 'contract_name=${contractName}' \
+            --form 'license_type=none' \
+            --form 'files[0]=@${tempFile};filename=input.json;type=application/json'`;
 
-        const result = execSync(curlCmd, { encoding: 'utf8', timeout: 120000 });
+        const result = execSync(curlCmd, { encoding: 'utf8', timeout: 60000 });
 
         // Cleanup temp file
         try { fs.unlinkSync(tempFile); } catch (e) {}
@@ -204,15 +128,12 @@ async function verifyViaStandardInput(contractAddress, contractName, contractPat
         if (response.message === "Smart-contract verification started") {
             console.log(`   📤 Verification started successfully`);
             return true;
-        } else if (response.is_verified) {
-            console.log(`   ✅ Already verified`);
-            return true;
         } else {
-            console.log(`   ⚠️ API response: ${result.substring(0, 200)}`);
+            console.log(`   ⚠️ API response: ${result.substring(0, 100)}`);
             return false;
         }
     } catch (error) {
-        console.log(`   ⚠️ Flattened Code verification failed: ${error.message?.substring(0, 80) || 'unknown'}`);
+        console.log(`   ⚠️ Standard Input verification failed: ${error.message?.substring(0, 80) || 'unknown'}`);
         return false;
     }
 }
