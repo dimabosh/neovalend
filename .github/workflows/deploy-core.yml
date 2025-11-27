@@ -22,7 +22,7 @@ on:
           - 'core-2.2'    # Logic Libraries (8 contracts)
           - 'core-3'      # Pool Implementation + Pool Proxy Creation
           - 'core-3.1'    # PoolConfigurator Implementation + Proxy Creation
-          - 'core-3.2'    # Deploy wA7A5 Token (100 billion supply)
+          - 'core-3.2'    # Deploy Test Tokens (NEO, USDT, USDC, BTC, ETH)
           - 'core-4'      # Token Implementation (2 contracts)
           - 'core-5'      # Data Providers & Gateways (4 contracts)
           - 'core-5.1'    # Grant Admin Roles (REQUIRED before Phase 6)
@@ -453,27 +453,28 @@ jobs:
           npm install @openzeppelin/contracts@5.1.0
           npm install @openzeppelin/contracts-upgradeable@5.1.0
 
-      - name: Deploy wA7A5 Token (100 billion supply)
+      - name: Deploy Test Tokens (NEO, USDT, USDC, BTC, ETH)
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          NETWORK: ${{ github.event.inputs.network }}
           FOUNDRY_DISABLE_NIGHTLY_WARNING: true
         run: |
-          echo "🚀 CORE Phase 3.2: Deploy wA7A5 Token"
+          echo "🚀 CORE Phase 3.2: Deploy Test Tokens"
           echo "=========================================="
-          echo "📋 Wrapped A7A5 Token (wA7A5)"
-          echo "📋 Initial Supply: 100,000,000,000 wA7A5"
-          echo "📋 Decimals: 18"
+          echo "📋 5 Test Tokens: NEO, USDT, USDC, BTC, ETH"
+          echo "📋 NEO/USDT/USDC: 100M supply"
+          echo "📋 BTC/ETH: 10M supply"
           echo ""
-          node scripts/deploy/core-phase3_2-wa7a5.js
+          node scripts/deploy/core-phase3_2-test-tokens.js
 
       - name: Commit results
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add deployments/
-          git commit -m "📝 CORE Phase 3.2: wA7A5 Token deployed (100B supply)" || exit 0
+          git commit -m "📝 CORE Phase 3.2: Test tokens deployed (NEO, USDT, USDC, BTC, ETH)" || exit 0
           git push
 
   # CORE Phase 5: Proxy & Finalization
