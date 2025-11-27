@@ -1,8 +1,8 @@
 {
   "network": "neox-testnet",
   "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
-  "timestamp": "2025-11-27T13:02:36.903Z",
-  "phase": "core-4-completed",
+  "timestamp": "2025-11-27T16:09:03.358Z",
+  "phase": "core-3.2-completed",
   "libraries": {
     "WadRayMath": "0x3BFF3E7a3F38091465b23230fd695fd92878049E",
     "PercentageMath": "0x7Efc7985A1F0665BDd2Da52cd166F870DB815e58",
@@ -37,6 +37,7 @@
     "USDT": "0xbCEAb9b0cee639E8b37607eBA8370e60789bcE7C",
     "USDC": "0x4d7B02c427e3508BbCc14f3079BB364c2Cf2a358",
     "BTC": "0x456b48FA869d0409C953a9042e036Ab667cc47C5",
-    "ETH": "0x5f2f94b7F57C713EBA6c1b1aaC2Da7617617a609"
+    "ETH": "0x5f2f94b7F57C713EBA6c1b1aaC2Da7617617a609",
+    "WGAS": "0x9b9032D047D7F879F54F5b54aE0EcE03bef39a8e"
   }
 }
