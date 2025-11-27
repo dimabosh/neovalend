@@ -55,9 +55,15 @@ async function hotfixOraclePrices() {
     let usdtPriceOracle;
 
     try {
-        const deployCommand = isNeoX
-            ? `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json`
-            : `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json`;
+        let deployCommand;
+        if (isNeoX) {
+            deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json`;
+        } else if (process.env.ETHERSCAN_API_KEY) {
+            deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json`;
+        } else {
+            console.log('⚠️ ETHERSCAN_API_KEY not set - deploying without verification');
+            deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json`;
+        }
 
         console.log('🚀 Deploying SimplePriceOracle for USDT...');
         const output = execSync(deployCommand, { encoding: 'utf8', stdio: 'pipe' });
@@ -99,9 +105,15 @@ async function hotfixOraclePrices() {
     let wa7a5PriceOracle;
 
     try {
-        const deployCommand = isNeoX
-            ? `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json`
-            : `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json`;
+        let deployCommand;
+        if (isNeoX) {
+            deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json`;
+        } else if (process.env.ETHERSCAN_API_KEY) {
+            deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json`;
+        } else {
+            console.log('⚠️ ETHERSCAN_API_KEY not set - deploying without verification');
+            deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json`;
+        }
 
         console.log('🚀 Deploying SimplePriceOracle for wA7A5...');
         const output = execSync(deployCommand, { encoding: 'utf8', stdio: 'pipe' });

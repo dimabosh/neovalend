@@ -314,9 +314,13 @@ async function deployCorePhase5() {
                 // NEO X: --legacy для транзакций, БЕЗ --verify (верификация через API отдельно)
                 foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json --use 0.8.27`;
                 console.log(`🌐 Deploying to NEO X (${network}) - Legacy transaction mode`);
-            } else {
-                // Ethereum networks: верификация через Etherscan
+            } else if (process.env.ETHERSCAN_API_KEY) {
+                // Ethereum networks: верификация через Etherscan (если есть API ключ)
                 foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27`;
+            } else {
+                // No API key - deploy without verification
+                console.log(`⚠️ ETHERSCAN_API_KEY not set - deploying without verification`);
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json --use 0.8.27`;
             }
 
             if (constructorArgs.length > 0) {
