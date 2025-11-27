@@ -237,6 +237,25 @@ async function deployCorePhase5() {
         console.log('ℹ️  Phase 4 tokens missing from local file - continuing anyway (normal for GitHub Actions)');
     }
 
+    // WETH/WGAS addresses for different networks
+    // NEO X uses WGAS (deployed in Phase 3.2) instead of WETH
+    const WETH_ADDRESSES = {
+        'sepolia': '0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9',
+        'mainnet': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+        'neox-testnet': null, // Will be loaded from deployments.tokens.WGAS
+        'neox-mainnet': null  // Will be loaded from deployments.tokens.WGAS
+    };
+
+    // For NEO X, check if WGAS was deployed in Phase 3.2
+    let wethAddress = WETH_ADDRESSES[network];
+    if (isNeoX && deployments.tokens && deployments.tokens.WGAS) {
+        wethAddress = deployments.tokens.WGAS;
+        console.log(`✅ Found WGAS from Phase 3.2: ${wethAddress}`);
+    } else if (isNeoX) {
+        console.log(`⚠️  WGAS not found in deployments. Run Phase 3.2 first to deploy WGAS.`);
+        console.log(`   WrappedTokenGatewayV3 will be skipped.`);
+    }
+
     // CORE Phase 5 контракты (data providers and gateways)
     const phase5Contracts = [
         {
@@ -259,24 +278,31 @@ async function deployCorePhase5() {
             ]
         },
         {
-            name: 'WrappedTokenGatewayV3', 
-            path: 'contracts/aave-v3-origin/src/contracts/helpers/WrappedTokenGatewayV3.sol',
-            description: 'Gateway for ETH deposits/withdraws (wraps to WETH)',
-            libraryLinks: [],
-            constructor: [
-                '0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9', // WETH Sepolia address
-                '${DEPLOYER}', // owner address
-                '${POOL}' // Pool address
-            ]
-        },
-        {
             name: 'UiIncentiveDataProviderV3',
-            path: 'contracts/aave-v3-origin/src/contracts/helpers/UiIncentiveDataProviderV3.sol', 
+            path: 'contracts/aave-v3-origin/src/contracts/helpers/UiIncentiveDataProviderV3.sol',
             description: 'UI data provider for incentives and rewards display',
             libraryLinks: [],
             constructor: []
         }
     ];
+
+    // Only add WrappedTokenGatewayV3 if WETH is available on this network
+    if (wethAddress) {
+        phase5Contracts.splice(2, 0, {
+            name: 'WrappedTokenGatewayV3',
+            path: 'contracts/aave-v3-origin/src/contracts/helpers/WrappedTokenGatewayV3.sol',
+            description: 'Gateway for ETH deposits/withdraws (wraps to WETH)',
+            libraryLinks: [],
+            constructor: [
+                wethAddress, // WETH address for this network
+                '${DEPLOYER}', // owner address
+                '${POOL}' // Pool address
+            ]
+        });
+    } else {
+        console.log(`⚠️  Skipping WrappedTokenGatewayV3 - no WETH available on ${network}`);
+        console.log(`   This gateway is only needed for native token (ETH/GAS) deposits/withdrawals`);
+    }
     
     console.log(`\n🎯 Deploying ${phase5Contracts.length} data provider and gateway contracts with Solidity 0.8.27...`);
     console.log(`📊 Setting up protocol data access and UI integration`);

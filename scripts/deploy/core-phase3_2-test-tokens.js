@@ -197,6 +197,14 @@ async function deployTestTokens() {
         }
     ];
 
+    // WGAS - special WETH9-style contract for wrapping native GAS token
+    // Deployed separately because it has different constructor pattern
+    const wgasConfig = {
+        name: 'WGAS',
+        path: 'contracts/mocks/WGAS.sol',
+        description: 'Wrapped GAS (WETH9-style) for native token deposits/withdrawals'
+    };
+
     const contractPath = 'contracts/mocks/MockERC20.sol';
     const contractName = 'MockERC20';
     const contractForFoundry = `${contractPath}:${contractName}`;
@@ -374,6 +382,144 @@ async function deployTestTokens() {
         // Delay between deployments
         console.log(`   ⏳ Waiting 5s before next token...`);
         await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+
+    // ===========================================
+    // DEPLOY WGAS (WETH9-style wrapper)
+    // ===========================================
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔥 DEPLOYING WGAS (Wrapped GAS)');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+    console.log(`📋 ${wgasConfig.description}`);
+    console.log(`📋 No constructor arguments (WETH9-style)`);
+
+    // Check if already deployed
+    if (!forceRedeploy && deployments.tokens && deployments.tokens.WGAS) {
+        console.log(`✅ WGAS already deployed at: ${deployments.tokens.WGAS}`);
+        console.log(`⏭️  Skipping (use FORCE_REDEPLOY=true to override)`);
+    } else {
+        console.log(`🚀 Deploying WGAS...`);
+
+        try {
+            const wgasContractPath = `${wgasConfig.path}:${wgasConfig.name}`;
+
+            // Build forge command - WGAS has NO constructor arguments
+            let wgasCommand;
+            if (isNeoX) {
+                // NEO X: --legacy, no --verify (will verify via API)
+                wgasCommand = `forge create "${wgasContractPath}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json --use 0.8.27`;
+            } else {
+                // Ethereum: with --verify
+                wgasCommand = `forge create "${wgasContractPath}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27`;
+            }
+
+            // Deploy
+            let wgasOutput;
+            try {
+                wgasOutput = execSync(wgasCommand, {
+                    encoding: 'utf8',
+                    stdio: 'pipe',
+                    maxBuffer: 50 * 1024 * 1024,
+                    timeout: 180000
+                });
+                console.log(`   📥 Deployed successfully`);
+            } catch (execError) {
+                console.log(`   ⚠️ Forge exited with error, checking if deployment succeeded...`);
+                wgasOutput = execError.stdout ? execError.stdout.toString() : '';
+                if (execError.stderr) {
+                    console.log(`   📥 stderr: ${execError.stderr.toString().substring(0, 200)}`);
+                }
+            }
+
+            // Parse address
+            let wgasAddress = null;
+            try {
+                const jsonMatch = wgasOutput.match(/\{[^}]*"deployedTo"[^}]*\}/);
+                if (jsonMatch) {
+                    const jsonOutput = JSON.parse(jsonMatch[0]);
+                    wgasAddress = jsonOutput.deployedTo;
+                }
+            } catch (e) {
+                const addressMatch = wgasOutput.match(/Deployed to: (0x[a-fA-F0-9]{40})/);
+                if (addressMatch) {
+                    wgasAddress = addressMatch[1];
+                }
+            }
+
+            if (!wgasAddress || wgasAddress === '0x0000000000000000000000000000000000000000') {
+                console.error(`   ❌ Could not parse WGAS deployment address`);
+            } else {
+                // Verify code exists
+                console.log(`   🔍 Verifying deployment...`);
+                try {
+                    const checkCommand = `cast code ${wgasAddress} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+                    const code = execSync(checkCommand, { stdio: 'pipe', encoding: 'utf8' }).trim();
+
+                    if (code === '0x' || code.length <= 4) {
+                        console.log(`   ⏳ Waiting for blockchain sync...`);
+                        await new Promise(resolve => setTimeout(resolve, 10000));
+
+                        const codeRetry = execSync(checkCommand, { stdio: 'pipe', encoding: 'utf8' }).trim();
+                        if (codeRetry === '0x' || codeRetry.length <= 4) {
+                            throw new Error('No code at address');
+                        }
+                    }
+                    console.log(`   ✅ Contract code verified on-chain`);
+                } catch (verifyError) {
+                    console.log(`   ⚠️ Code verification issue: ${verifyError.message}`);
+                }
+
+                console.log(`   ✅ WGAS: ${wgasAddress}`);
+
+                // Verify via Blockscout API for NEO X
+                if (isNeoX) {
+                    console.log(`   🔍 Starting verification via Standard Input API...`);
+
+                    // Wait for indexing
+                    await new Promise(resolve => setTimeout(resolve, 15000));
+
+                    // No constructor args for WGAS
+                    await verifyViaStandardInput(wgasAddress, wgasConfig.name, wgasConfig.path, verifierBaseUrl, '');
+
+                    // Wait and check
+                    await new Promise(resolve => setTimeout(resolve, 20000));
+
+                    let verified = false;
+                    for (let attempt = 1; attempt <= 2; attempt++) {
+                        const status = await checkVerificationStatus(wgasAddress, wgasConfig.name, verifierBaseUrl);
+
+                        if (status.isVerified || status.isPartiallyVerified) {
+                            console.log(`   ✅ Verified${status.isPartiallyVerified ? ' (partial)' : ''}`);
+                            verified = true;
+                            break;
+                        } else {
+                            console.log(`   ⏳ Not verified yet (attempt ${attempt}/2)`);
+                            if (attempt < 2) {
+                                await verifyViaStandardInput(wgasAddress, wgasConfig.name, wgasConfig.path, verifierBaseUrl, '');
+                                await new Promise(resolve => setTimeout(resolve, 15000));
+                            }
+                        }
+                    }
+
+                    if (!verified) {
+                        console.log(`   ⚠️ Verification may need manual check`);
+                    }
+                }
+
+                // Save to deployments
+                if (!deployments.tokens) {
+                    deployments.tokens = {};
+                }
+                deployments.tokens.WGAS = wgasAddress;
+                deployments.timestamp = new Date().toISOString();
+                fs.writeFileSync('deployments/all-contracts.json', JSON.stringify(deployments, null, 2));
+                console.log(`   💾 Saved WGAS to deployments`);
+            }
+
+        } catch (error) {
+            console.error(`   ❌ Failed to deploy WGAS:`, error.message);
+        }
     }
 
     // ===========================================
