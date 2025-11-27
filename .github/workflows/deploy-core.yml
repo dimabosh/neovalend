@@ -360,6 +360,8 @@ jobs:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          NETWORK: ${{ github.event.inputs.network }}
+          FOUNDRY_DISABLE_NIGHTLY_WARNING: true
         run: |
           echo "🚀 CORE Phase 3.1: PoolConfigurator Implementation + Proxy"
           echo "=========================================================="
