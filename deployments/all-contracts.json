@@ -1,8 +1,8 @@
 {
   "network": "neox-testnet",
   "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
-  "timestamp": "2025-11-27T16:09:03.358Z",
-  "phase": "core-3.2-completed",
+  "timestamp": "2025-11-27T16:16:00.185Z",
+  "phase": "core-5-completed",
   "libraries": {
     "WadRayMath": "0x3BFF3E7a3F38091465b23230fd695fd92878049E",
     "PercentageMath": "0x7Efc7985A1F0665BDd2Da52cd166F870DB815e58",
@@ -30,14 +30,10 @@
     "PoolConfigurator_Implementation": "0x5467D15B71B3e497eDB9C0978cBCDE23a06f4Ac8",
     "PoolConfigurator": "0x9FFb0f2AF3B613cFAD0e035A787D2f2017C2FAEB",
     "ATokenInstance": "0x4d12c902Fc2E755163b820ADC0931F93A17E9232",
-    "VariableDebtTokenInstance": "0x5255Ba17B81Bcbe7b67d8eCdcd31A100f7474647"
+    "VariableDebtTokenInstance": "0x5255Ba17B81Bcbe7b67d8eCdcd31A100f7474647",
+    "AaveProtocolDataProvider": "0x73a3a6AfD28230118678B4D3926c844D4Ab6A43e",
+    "UiPoolDataProviderV3": "0xbd4d0C482A9f141a916938609a058E4A789B392E",
+    "UiIncentiveDataProviderV3": "0x8Ac74680dBD5111563f80B00bcDeaCB6d53Fdd10"
   },
-  "tokens": {
-    "NEO": "0x8B0652a4db1670741dAb3c4bf882afbACDb44D3C",
-    "USDT": "0xbCEAb9b0cee639E8b37607eBA8370e60789bcE7C",
-    "USDC": "0x4d7B02c427e3508BbCc14f3079BB364c2Cf2a358",
-    "BTC": "0x456b48FA869d0409C953a9042e036Ab667cc47C5",
-    "ETH": "0x5f2f94b7F57C713EBA6c1b1aaC2Da7617617a609",
-    "WGAS": "0x9b9032D047D7F879F54F5b54aE0EcE03bef39a8e"
-  }
+  "status": "CORE_PROTOCOL_COMPLETE"
 }
