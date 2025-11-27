@@ -8,12 +8,31 @@ async function fixWA7A5Collateral() {
     console.log('🔧 HOTFIX: Configuring wA7A5 as collateral');
     console.log('==========================================\n');
 
-    // Network detection
+    // Network detection and RPC URL validation
     const network = process.env.NETWORK || 'sepolia';
     const isNeoX = network.includes('neox');
+    const rpcUrl = process.env.RPC_URL_SEPOLIA;
     const legacyFlag = isNeoX ? '--legacy' : '';
 
     console.log(`🌐 Network: ${network}`);
+    console.log(`📡 RPC URL: ${rpcUrl}`);
+
+    // Validate RPC URL matches expected network
+    if (!rpcUrl) {
+        console.error('❌ RPC_URL_SEPOLIA environment variable is not set!');
+        process.exit(1);
+    }
+
+    if (isNeoX && !rpcUrl.includes('ngd.network') && !rpcUrl.includes('banelabs')) {
+        console.error(`❌ Network mismatch! Network is ${network} but RPC URL doesn't look like NEO X`);
+        process.exit(1);
+    }
+
+    if (!isNeoX && (rpcUrl.includes('ngd.network') || rpcUrl.includes('banelabs'))) {
+        console.error(`❌ Network mismatch! Network is ${network} but RPC URL is for NEO X`);
+        process.exit(1);
+    }
+
     if (isNeoX) {
         console.log('⚡ Using legacy transactions for NEO X');
     }

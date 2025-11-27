@@ -19,18 +19,39 @@ async function deployCorePhase6() {
     console.log('  6. Enable borrowing');
     console.log('🎯 Result: Fully configured lending protocol ready for use!');
 
-    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL_SEPOLIA);
-    const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
-
-    // Network detection
+    // Network detection and RPC URL validation
     const network = process.env.NETWORK || 'sepolia';
     const isNeoX = network.includes('neox');
+    const rpcUrl = process.env.RPC_URL_SEPOLIA;
     const legacyFlag = isNeoX ? '--legacy' : '';
 
-    console.log('\n📋 Deployer:', wallet.address);
+    console.log(`\n🌐 Network: ${network}`);
+    console.log(`📡 RPC URL: ${rpcUrl}`);
+
+    // Validate RPC URL matches expected network
+    if (!rpcUrl) {
+        console.error('❌ RPC_URL_SEPOLIA environment variable is not set!');
+        process.exit(1);
+    }
+
+    if (isNeoX && !rpcUrl.includes('ngd.network') && !rpcUrl.includes('banelabs')) {
+        console.error(`❌ Network mismatch! Network is ${network} but RPC URL doesn't look like NEO X`);
+        console.error(`   RPC URL: ${rpcUrl}`);
+        process.exit(1);
+    }
+
+    if (!isNeoX && (rpcUrl.includes('ngd.network') || rpcUrl.includes('banelabs'))) {
+        console.error(`❌ Network mismatch! Network is ${network} but RPC URL is for NEO X`);
+        console.error(`   RPC URL: ${rpcUrl}`);
+        process.exit(1);
+    }
+
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
+
+    console.log('📋 Deployer:', wallet.address);
     const balance = await provider.getBalance(wallet.address);
     console.log('💰 Balance:', ethers.formatEther(balance), 'GAS');
-    console.log(`🌐 Network: ${network}`);
     if (isNeoX) {
         console.log('⚡ Using legacy transactions for NEO X');
     }

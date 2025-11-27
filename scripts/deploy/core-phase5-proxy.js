@@ -135,29 +135,52 @@ async function deployCorePhase5() {
     console.log('🎯 Features: Protocol data access, UI integration, ETH gateway');
     console.log('🔧 Verification: Standard JSON Input API for NEO X\n');
 
-    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL_SEPOLIA);
+    // Network detection and RPC URL validation
+    const network = process.env.NETWORK || 'sepolia';
+    const isNeoX = network.includes('neox');
+    const rpcUrl = process.env.RPC_URL_SEPOLIA;
+
+    console.log(`🌐 Network: ${network}`);
+    console.log(`📡 RPC URL: ${rpcUrl}`);
+
+    // Validate RPC URL matches expected network
+    if (!rpcUrl) {
+        console.error('❌ RPC_URL_SEPOLIA environment variable is not set!');
+        process.exit(1);
+    }
+
+    if (isNeoX && !rpcUrl.includes('ngd.network') && !rpcUrl.includes('banelabs')) {
+        console.error(`❌ Network mismatch! Network is ${network} but RPC URL doesn't look like NEO X`);
+        console.error(`   RPC URL: ${rpcUrl}`);
+        console.error('   Expected: neoxt4seed1.ngd.network or mainnet-1.rpc.banelabs.org');
+        process.exit(1);
+    }
+
+    if (!isNeoX && (rpcUrl.includes('ngd.network') || rpcUrl.includes('banelabs'))) {
+        console.error(`❌ Network mismatch! Network is ${network} but RPC URL is for NEO X`);
+        console.error(`   RPC URL: ${rpcUrl}`);
+        console.error('   For Sepolia, use an Alchemy/Infura URL');
+        process.exit(1);
+    }
+
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
 
     console.log('📋 Deployer:', wallet.address);
     const balance = await provider.getBalance(wallet.address);
     console.log('💰 Balance:', ethers.formatEther(balance), 'GAS');
 
-    // Network detection
-    const network = process.env.NETWORK || 'sepolia';
-    const isNeoX = network.includes('neox');
-
     // Blockscout URLs for NEO X
     const verifierBaseUrl = network === 'neox-mainnet'
         ? 'https://xexplorer.neo.org'
         : 'https://xt4scan.ngd.network';
 
-    console.log(`🌐 Network: ${network}`);
     console.log(`🔧 isNeoX: ${isNeoX}`);
     if (isNeoX) {
         console.log(`🔍 Verifier: ${verifierBaseUrl}`);
         console.log('⚡ Using legacy transactions for NEO X');
     }
-    
+
     // Загрузить или создать deployments
     let deployments = {
         network: process.env.NETWORK || 'sepolia',

@@ -16,21 +16,40 @@ async function hotfixOraclePrices() {
     console.log('  - wA7A5: $0.0111 (1111111 in 8 decimals) // 1 USDT = 90 A7A5');
     console.log('');
 
-    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL_SEPOLIA);
-    const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
-
-    // Network detection
+    // Network detection and RPC URL validation
     const network = process.env.NETWORK || 'sepolia';
     const isNeoX = network.includes('neox');
+    const rpcUrl = process.env.RPC_URL_SEPOLIA;
     const legacyFlag = isNeoX ? '--legacy' : '';
 
-    console.log('📋 Deployer:', wallet.address);
     console.log(`🌐 Network: ${network}`);
+    console.log(`📡 RPC URL: ${rpcUrl}`);
+
+    // Validate RPC URL matches expected network
+    if (!rpcUrl) {
+        console.error('❌ RPC_URL_SEPOLIA environment variable is not set!');
+        process.exit(1);
+    }
+
+    if (isNeoX && !rpcUrl.includes('ngd.network') && !rpcUrl.includes('banelabs')) {
+        console.error(`❌ Network mismatch! Network is ${network} but RPC URL doesn't look like NEO X`);
+        process.exit(1);
+    }
+
+    if (!isNeoX && (rpcUrl.includes('ngd.network') || rpcUrl.includes('banelabs'))) {
+        console.error(`❌ Network mismatch! Network is ${network} but RPC URL is for NEO X`);
+        process.exit(1);
+    }
+
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
+
+    console.log('📋 Deployer:', wallet.address);
     if (isNeoX) {
         console.log('⚡ Using legacy transactions for NEO X');
     }
     const balance = await provider.getBalance(wallet.address);
-    console.log('💰 Balance:', ethers.formatEther(balance), 'ETH\n');
+    console.log('💰 Balance:', ethers.formatEther(balance), 'GAS\n');
 
     // Load deployments
     const deployments = JSON.parse(fs.readFileSync('deployments/all-contracts.json', 'utf8'));
