@@ -278,8 +278,18 @@ async function deployCorePhase5() {
         }
         
         console.log(`🚀 Deploying ${contractConfig.name}...`);
-        
+
         try {
+            // Check balance before deploying
+            const currentBalance = await provider.getBalance(wallet.address);
+            const balanceInEth = parseFloat(ethers.formatEther(currentBalance));
+            console.log(`   💰 Current balance: ${balanceInEth.toFixed(6)} GAS`);
+            if (balanceInEth < 0.01) {
+                console.error(`   ❌ Insufficient balance for deployment! Need at least 0.01 GAS`);
+                console.error(`   💡 Please fund address: ${wallet.address}`);
+                process.exit(1);
+            }
+
             // Проверим что файл существует
             if (!fs.existsSync(contractConfig.path)) {
                 console.error(`❌ Contract file not found: ${contractConfig.path}`);
@@ -334,19 +344,29 @@ async function deployCorePhase5() {
             // Deploy with error handling
             let foundryOutput;
             try {
+                // Log the full command for debugging (without private key)
+                const debugCommand = foundryCommand.replace(/--private-key\s+\S+/, '--private-key ***');
+                console.log(`   📋 Full command: ${debugCommand}`);
+
                 foundryOutput = execSync(foundryCommand, {
                     encoding: 'utf8',
                     stdio: 'pipe',
                     maxBuffer: 50 * 1024 * 1024,
-                    timeout: 300000
+                    timeout: 600000 // Increased to 10 minutes
                 });
                 console.log('   📥 Deployed successfully');
             } catch (execError) {
                 // Forge может упасть на верификации, но деплой может быть успешным
                 console.log('   ⚠️ Forge command exited with error, checking if deployment succeeded...');
                 foundryOutput = execError.stdout ? execError.stdout.toString() : '';
-                if (execError.stderr) {
-                    console.log(`   📥 Forge stderr: ${execError.stderr.toString().substring(0, 300)}`);
+                const stderrStr = execError.stderr ? execError.stderr.toString() : '';
+                if (stderrStr) {
+                    console.log(`   📥 Forge stderr: ${stderrStr.substring(0, 500)}`);
+                }
+                // Check if it's a compilation error vs deployment error
+                if (stderrStr.includes('Compiler run failed') || stderrStr.includes('Error:') && !stderrStr.includes('contract was not deployed')) {
+                    console.error(`   ❌ Compilation error detected`);
+                    throw execError;
                 }
             }
 
