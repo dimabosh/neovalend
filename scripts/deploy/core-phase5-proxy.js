@@ -4,6 +4,128 @@ const { execSync } = require('child_process');
 
 // CORE Phase 5: Data Providers & Gateways (Aave v3.5 with Solidity 0.8.27)
 // 4 контракта: AaveProtocolDataProvider, UiPoolDataProviderV3, WrappedTokenGatewayV3, UiIncentiveDataProviderV3
+// Верификация через Standard JSON Input API для NEO X / Blockscout
+
+const path = require('path');
+const os = require('os');
+
+/**
+ * Создаёт Standard JSON Input для верификации через Blockscout API
+ */
+function createStandardJsonInput(contractName, flattenedSource) {
+    return {
+        language: "Solidity",
+        sources: {
+            [`${contractName}.sol`]: {
+                content: flattenedSource
+            }
+        },
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200
+            },
+            evmVersion: "shanghai",
+            metadata: {
+                bytecodeHash: "none",
+                useLiteralContent: false,
+                appendCBOR: true
+            },
+            viaIR: false,
+            outputSelection: {
+                "*": {
+                    "*": ["abi", "evm.bytecode", "evm.deployedBytecode", "metadata"]
+                }
+            }
+        }
+    };
+}
+
+/**
+ * Верифицирует контракт через Blockscout Standard Input API
+ */
+async function verifyViaStandardInput(contractAddress, contractName, contractPath, verifierBaseUrl, constructorArgs = []) {
+    console.log(`   🔄 Verifying via Standard Input API...`);
+
+    try {
+        // 1. Flatten source code
+        const flattenedSource = execSync(`forge flatten "${contractPath}"`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe']
+        });
+
+        // 2. Create Standard JSON Input
+        const stdJsonInput = createStandardJsonInput(contractName, flattenedSource);
+
+        // 3. Save to temp file (required for multipart upload)
+        const tempFile = path.join(os.tmpdir(), `${contractName}_input.json`);
+        fs.writeFileSync(tempFile, JSON.stringify(stdJsonInput));
+
+        // 4. Submit via curl multipart form
+        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
+
+        let curlCmd = `curl -s -L -X POST "${apiUrl}" \
+            --form 'compiler_version=v0.8.27+commit.40a35a09' \
+            --form 'contract_name=${contractName}' \
+            --form 'license_type=none' \
+            --form 'files[0]=@${tempFile};filename=input.json;type=application/json'`;
+
+        // Добавляем constructor args если есть
+        if (constructorArgs && constructorArgs.length > 0) {
+            const abiCoder = new ethers.AbiCoder();
+            // Encode constructor args based on types
+            let encodedArgs;
+            if (contractName === 'AaveProtocolDataProvider') {
+                encodedArgs = abiCoder.encode(['address'], constructorArgs);
+            } else if (contractName === 'UiPoolDataProviderV3') {
+                encodedArgs = abiCoder.encode(['address', 'address'], constructorArgs);
+            } else if (contractName === 'WrappedTokenGatewayV3') {
+                encodedArgs = abiCoder.encode(['address', 'address', 'address'], constructorArgs);
+            }
+            if (encodedArgs) {
+                const argsHex = encodedArgs.slice(2);
+                curlCmd += ` --form 'constructor_args=${argsHex}'`;
+            }
+        }
+
+        const result = execSync(curlCmd, { encoding: 'utf8', timeout: 60000 });
+
+        // Cleanup temp file
+        try { fs.unlinkSync(tempFile); } catch (e) {}
+
+        const response = JSON.parse(result);
+        if (response.message === "Smart-contract verification started") {
+            console.log(`   📤 Verification started successfully`);
+            return true;
+        } else {
+            console.log(`   ⚠️ API response: ${result.substring(0, 100)}`);
+            return false;
+        }
+    } catch (error) {
+        console.log(`   ⚠️ Standard Input verification failed: ${error.message?.substring(0, 80) || 'unknown'}`);
+        return false;
+    }
+}
+
+/**
+ * Проверяет статус верификации контракта
+ */
+async function checkVerificationStatus(contractAddress, expectedName, verifierBaseUrl) {
+    try {
+        const checkUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}`;
+        const result = execSync(`curl -s "${checkUrl}"`, { encoding: 'utf8' });
+        const contractInfo = JSON.parse(result);
+
+        return {
+            isVerified: contractInfo.is_verified === true,
+            isPartiallyVerified: contractInfo.is_partially_verified === true,
+            name: contractInfo.name,
+            nameMatches: contractInfo.name === expectedName
+        };
+    } catch (error) {
+        return { isVerified: false, isPartiallyVerified: false, name: null, nameMatches: false };
+    }
+}
 
 async function deployCorePhase5() {
     console.log('🚀 CORE Phase 5: Data Providers & Gateways (Aave v3.5)');
@@ -11,14 +133,30 @@ async function deployCorePhase5() {
     console.log('💰 Estimated Cost: ~$1.4 USD');
     console.log('📋 Contracts: 4 data provider and gateway contracts');
     console.log('🎯 Features: Protocol data access, UI integration, ETH gateway');
-    console.log('🎉 Final step: Complete CORE Aave v3.5 protocol!');
-    
+    console.log('🔧 Verification: Standard JSON Input API for NEO X\n');
+
     const provider = new ethers.JsonRpcProvider(process.env.RPC_URL_SEPOLIA);
     const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
-    
+
     console.log('📋 Deployer:', wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('💰 Balance:', ethers.formatEther(balance), 'ETH');
+    console.log('💰 Balance:', ethers.formatEther(balance), 'GAS');
+
+    // Network detection
+    const network = process.env.NETWORK || 'sepolia';
+    const isNeoX = network.includes('neox');
+
+    // Blockscout URLs for NEO X
+    const verifierBaseUrl = network === 'neox-mainnet'
+        ? 'https://xexplorer.neo.org'
+        : 'https://xt4scan.ngd.network';
+
+    console.log(`🌐 Network: ${network}`);
+    console.log(`🔧 isNeoX: ${isNeoX}`);
+    if (isNeoX) {
+        console.log(`🔍 Verifier: ${verifierBaseUrl}`);
+        console.log('⚡ Using legacy transactions for NEO X');
+    }
     
     // Загрузить или создать deployments
     let deployments = {
@@ -170,37 +308,43 @@ async function deployCorePhase5() {
                 return arg;
             });
             
-            // Сборка команды с constructor args
-            let foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27`;
-            
+            // Сборка команды - БЕЗ встроенной верификации для NEO X
+            let foundryCommand;
+            if (isNeoX) {
+                // NEO X: --legacy для транзакций, БЕЗ --verify (верификация через API отдельно)
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json --use 0.8.27`;
+                console.log(`🌐 Deploying to NEO X (${network}) - Legacy transaction mode`);
+            } else {
+                // Ethereum networks: верификация через Etherscan
+                foundryCommand = `forge create "${contractForFoundry}" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json --use 0.8.27`;
+            }
+
             if (constructorArgs.length > 0) {
                 foundryCommand += ` --constructor-args ${constructorArgs.join(' ')}`;
             }
-            
+
             console.log(`📋 Command: forge create "${contractForFoundry}"`);
             console.log(`🔧 Using Solidity 0.8.27 for Aave v3.5 compatibility`);
             console.log(`📋 Constructor args:`, constructorArgs);
 
-            // Deploy with error handling (CLAUDE.md Lesson 11)
+            // Deploy with error handling
             let foundryOutput;
             try {
                 foundryOutput = execSync(foundryCommand, {
                     encoding: 'utf8',
                     stdio: 'pipe',
-                    maxBuffer: 50 * 1024 * 1024
+                    maxBuffer: 50 * 1024 * 1024,
+                    timeout: 300000
                 });
-                console.log('✅ Deployment successful!');
+                console.log('   📥 Deployed successfully');
             } catch (execError) {
                 // Forge может упасть на верификации, но деплой может быть успешным
-                console.log('⚠️ Forge command exited with error, but deployment may have succeeded');
+                console.log('   ⚠️ Forge command exited with error, checking if deployment succeeded...');
                 foundryOutput = execError.stdout ? execError.stdout.toString() : '';
                 if (execError.stderr) {
-                    console.log('📥 Forge stderr:', execError.stderr.toString().substring(0, 500));
+                    console.log(`   📥 Forge stderr: ${execError.stderr.toString().substring(0, 300)}`);
                 }
             }
-
-            console.log('Raw Foundry Output:');
-            console.log(foundryOutput);
 
             // Парсим адрес из JSON
             let contractAddress = null;
@@ -233,36 +377,58 @@ async function deployCorePhase5() {
                 process.exit(1);
             }
 
-            // Verify deployment with retry (CLAUDE.md Lesson 11)
-            console.log('🔍 Verifying contract deployment...');
+            // Verify deployment on-chain
+            console.log('   🔍 Verifying contract deployment...');
             try {
                 const checkCommand = `cast code ${contractAddress} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
                 const code = execSync(checkCommand, { stdio: 'pipe', encoding: 'utf8' }).trim();
 
                 if (code === '0x' || code.length <= 4) {
-                    console.log('❌ Contract code not found - deployment may have failed');
-                    console.log('🔄 Waiting 15s for blockchain to sync...');
+                    console.log('   ⏳ Waiting for blockchain sync...');
                     await new Promise(resolve => setTimeout(resolve, 15000));
 
-                    // Retry
                     const codeRetry = execSync(checkCommand, { stdio: 'pipe', encoding: 'utf8' }).trim();
                     if (codeRetry === '0x' || codeRetry.length <= 4) {
                         throw new Error('Contract deployment failed - no code at address');
-                    } else {
-                        console.log('✅ Contract code found after retry');
                     }
+                    console.log('   ✅ Contract code found after retry');
                 } else {
-                    console.log('✅ Contract code verified on-chain');
+                    console.log('   ✅ Contract code verified on-chain');
                 }
             } catch (verifyError) {
-                console.log('⚠️ Contract verification failed:', verifyError.message);
-                console.log('🔄 Continuing anyway - contract may still be valid');
+                console.log(`   ⚠️ Code verification issue: ${verifyError.message}`);
+            }
+
+            console.log(`   ✅ ${contractConfig.name}: ${contractAddress}`);
+
+            // Верификация через Standard Input API для NEO X
+            if (isNeoX) {
+                console.log(`   🔍 Starting verification via Standard Input API...`);
+
+                // Ждём индексацию на Blockscout
+                await new Promise(resolve => setTimeout(resolve, 15000));
+
+                // Отправляем верификацию через Standard Input API
+                await verifyViaStandardInput(contractAddress, contractConfig.name, contractConfig.path, verifierBaseUrl, constructorArgs);
+
+                // Ждём обработки верификации
+                await new Promise(resolve => setTimeout(resolve, 20000));
+
+                // Проверяем результат
+                const status = await checkVerificationStatus(contractAddress, contractConfig.name, verifierBaseUrl);
+                if (status.isVerified) {
+                    console.log(`   ✅ Verified as ${status.name}`);
+                } else if (status.isPartiallyVerified) {
+                    console.log(`   ⚠️ Partially verified (bytecodeHash: none is expected for Aave v3.5)`);
+                } else {
+                    console.log(`   ⚠️ Verification may need manual check at ${verifierBaseUrl}`);
+                }
             }
 
             // Save deployment
             deployments.contracts[contractConfig.name] = contractAddress;
 
-            console.log(`🎉 ${contractConfig.name} deployed at: ${contractAddress}`);
+            console.log(`   🎉 ${contractConfig.name} deployed at: ${contractAddress}`);
                 
                 // Особые сообщения для каждого контракта
                 if (contractConfig.name === 'AaveProtocolDataProvider') {
@@ -374,6 +540,10 @@ async function deployCorePhase5() {
     console.log('💰 Total Cost: ~$6.4 USD for complete DeFi protocol (~$5 + $1.4 Phase 5)');
     console.log('');
     console.log('🏁 CORE Deployment Phase 5/5 COMPLETE! 🏁');
+
+    if (isNeoX) {
+        console.log(`\n🔗 View on Blockscout: ${verifierBaseUrl}`);
+    }
 }
 
 // Запуск

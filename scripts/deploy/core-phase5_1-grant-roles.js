@@ -4,6 +4,7 @@ const { execSync } = require('child_process');
 
 // CORE Phase 5.1: Grant Admin Roles (Aave v3.5)
 // Назначение ролей POOL_ADMIN и ASSET_LISTING_ADMIN для deployer
+// Поддержка NEO X с --legacy флагом для транзакций
 
 async function grantRoles() {
     console.log('🔐 CORE Phase 5.1: Grant Admin Roles');
@@ -16,9 +17,19 @@ async function grantRoles() {
     const provider = new ethers.JsonRpcProvider(process.env.RPC_URL_SEPOLIA);
     const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
 
+    // Network detection
+    const network = process.env.NETWORK || 'sepolia';
+    const isNeoX = network.includes('neox');
+    const legacyFlag = isNeoX ? '--legacy' : '';
+
     console.log('📋 Deployer:', wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('💰 Balance:', ethers.formatEther(balance), 'ETH\n');
+    console.log('💰 Balance:', ethers.formatEther(balance), 'GAS');
+    console.log(`🌐 Network: ${network}`);
+    if (isNeoX) {
+        console.log('⚡ Using legacy transactions for NEO X');
+    }
+    console.log('');
 
     // Load deployments
     if (!fs.existsSync('deployments/all-contracts.json')) {
@@ -94,7 +105,7 @@ async function grantRoles() {
 
         try {
             execSync(
-                `cast send ${aclManager} "addPoolAdmin(address)" ${deployer} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`,
+                `cast send ${aclManager} "addPoolAdmin(address)" ${deployer} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`,
                 { stdio: 'inherit' }
             );
             console.log('\n✅ POOL_ADMIN role granted successfully!');
@@ -125,7 +136,7 @@ async function grantRoles() {
 
         try {
             execSync(
-                `cast send ${aclManager} "addAssetListingAdmin(address)" ${deployer} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`,
+                `cast send ${aclManager} "addAssetListingAdmin(address)" ${deployer} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`,
                 { stdio: 'inherit' }
             );
             console.log('\n✅ ASSET_LISTING_ADMIN role granted successfully!');

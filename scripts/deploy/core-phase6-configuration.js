@@ -4,6 +4,7 @@ const { execSync } = require('child_process');
 
 // CORE Phase 6: Protocol Configuration (Aave v3.5)
 // Настройка PoolConfigurator и инициализация резервов USDT & A7A5
+// Поддержка NEO X с --legacy флагом для транзакций
 
 async function deployCorePhase6() {
     console.log('🚀 CORE Phase 6: Protocol Configuration (Aave v3.5)');
@@ -21,9 +22,18 @@ async function deployCorePhase6() {
     const provider = new ethers.JsonRpcProvider(process.env.RPC_URL_SEPOLIA);
     const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
 
+    // Network detection
+    const network = process.env.NETWORK || 'sepolia';
+    const isNeoX = network.includes('neox');
+    const legacyFlag = isNeoX ? '--legacy' : '';
+
     console.log('\n📋 Deployer:', wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('💰 Balance:', ethers.formatEther(balance), 'ETH');
+    console.log('💰 Balance:', ethers.formatEther(balance), 'GAS');
+    console.log(`🌐 Network: ${network}`);
+    if (isNeoX) {
+        console.log('⚡ Using legacy transactions for NEO X');
+    }
 
     // Load deployments
     if (!fs.existsSync('deployments/all-contracts.json')) {
@@ -104,7 +114,7 @@ async function deployCorePhase6() {
             // Try with cast --trace to see revert reason
             try {
                 const registerResult = execSync(
-                    `cast send ${POOL_ADDRESSES_PROVIDER} "setPoolConfiguratorImpl(address)" ${POOL_CONFIGURATOR} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --gas-limit 2000000`,
+                    `cast send ${POOL_ADDRESSES_PROVIDER} "setPoolConfiguratorImpl(address)" ${POOL_CONFIGURATOR} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --gas-limit 2000000 ${legacyFlag}`,
                     { encoding: 'utf8', stdio: 'pipe' }
                 );
 
@@ -192,7 +202,7 @@ async function deployCorePhase6() {
         console.log(`📋 Calling: initialize(${POOL_ADDRESSES_PROVIDER})`);
 
         try {
-            const initCommand = `cast send ${POOL_CONFIGURATOR} "initialize(address)" ${POOL_ADDRESSES_PROVIDER} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+            const initCommand = `cast send ${POOL_CONFIGURATOR} "initialize(address)" ${POOL_ADDRESSES_PROVIDER} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`;
 
             const initResult = execSync(initCommand, { encoding: 'utf8', stdio: 'pipe' });
             console.log('✅ PoolConfigurator initialized successfully!');
@@ -397,7 +407,7 @@ async function deployCorePhase6() {
 
                 // Теперь выполняем реальную транзакцию (с увеличенным gas price для второй транзакции)
                 const gasPrice = reserve.name === 'wA7A5' ? '--gas-price 2000000000' : ''; // 2 gwei для wA7A5
-                const initReserveCommand = `cast send ${deployments.contracts.PoolConfigurator} "initReserves((address,address,address,string,string,string,string,bytes,bytes)[])" "[(${deployments.contracts.ATokenInstance},${deployments.contracts.VariableDebtTokenInstance},${reserve.address},\\"${reserve.aTokenName}\\",\\"${reserve.aTokenSymbol}\\",\\"${reserve.debtTokenName}\\",\\"${reserve.debtTokenSymbol}\\",0x,${interestRateData})]" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${gasPrice}`;
+                const initReserveCommand = `cast send ${deployments.contracts.PoolConfigurator} "initReserves((address,address,address,string,string,string,string,bytes,bytes)[])" "[(${deployments.contracts.ATokenInstance},${deployments.contracts.VariableDebtTokenInstance},${reserve.address},\\"${reserve.aTokenName}\\",\\"${reserve.aTokenSymbol}\\",\\"${reserve.debtTokenName}\\",\\"${reserve.debtTokenSymbol}\\",0x,${interestRateData})]" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${gasPrice} ${legacyFlag}`;
 
                 console.log(`📤 Executing actual transaction...`);
 
@@ -426,7 +436,7 @@ async function deployCorePhase6() {
             if (!isInitialized) {
                 console.log(`🔒 Step 2: Configuring ${reserve.name} as collateral...`);
                 // ⚠️ ВАЖНО: Aave v3.5 использует 4 параметра (БЕЗ decimals)
-                const collateralCommand = `cast send ${deployments.contracts.PoolConfigurator} "configureReserveAsCollateral(address,uint256,uint256,uint256)" ${reserve.address} ${reserve.ltv} ${reserve.liquidationThreshold} ${reserve.liquidationBonus} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+                const collateralCommand = `cast send ${deployments.contracts.PoolConfigurator} "configureReserveAsCollateral(address,uint256,uint256,uint256)" ${reserve.address} ${reserve.ltv} ${reserve.liquidationThreshold} ${reserve.liquidationBonus} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`;
 
                 try {
                     const collateralOutput = execSync(collateralCommand, { stdio: 'pipe', encoding: 'utf8' });
@@ -447,7 +457,7 @@ async function deployCorePhase6() {
             // Set interest rate parameters (только если был инициализирован сейчас)
             if (!isInitialized) {
                 console.log(`💹 Step 3: Setting interest rate parameters...`);
-                const setRateParamsCommand = `cast send ${deployments.contracts.DefaultReserveInterestRateStrategyV2} "setInterestRateParams(address,(uint16,uint16,uint16,uint16,uint16,uint16,uint16,uint16))" ${reserve.address} "(${reserve.optimalUsageRatio},${reserve.baseRate},${reserve.slope1},${reserve.slope2},0,200,600,8000)" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+                const setRateParamsCommand = `cast send ${deployments.contracts.DefaultReserveInterestRateStrategyV2} "setInterestRateParams(address,(uint16,uint16,uint16,uint16,uint16,uint16,uint16,uint16))" ${reserve.address} "(${reserve.optimalUsageRatio},${reserve.baseRate},${reserve.slope1},${reserve.slope2},0,200,600,8000)" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`;
 
                 try {
                     const rateParamsOutput = execSync(setRateParamsCommand, { stdio: 'pipe', encoding: 'utf8' });
@@ -464,7 +474,7 @@ async function deployCorePhase6() {
             // Set interest rate strategy (только если был инициализирован сейчас)
             if (!isInitialized) {
                 console.log(`💹 Step 4: Setting interest rate strategy...`);
-                const strategyCommand = `cast send ${deployments.contracts.PoolConfigurator} "setReserveInterestRateStrategyAddress(address,address)" ${reserve.address} ${deployments.contracts.DefaultReserveInterestRateStrategyV2} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+                const strategyCommand = `cast send ${deployments.contracts.PoolConfigurator} "setReserveInterestRateStrategyAddress(address,address)" ${reserve.address} ${deployments.contracts.DefaultReserveInterestRateStrategyV2} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`;
 
                 try {
                     const strategyOutput = execSync(strategyCommand, { stdio: 'pipe', encoding: 'utf8' });
@@ -481,7 +491,7 @@ async function deployCorePhase6() {
             // Enable borrowing (только если был инициализирован сейчас)
             if (!isInitialized) {
                 console.log(`🏦 Step 5: Enabling borrowing...`);
-                const borrowingCommand = `cast send ${deployments.contracts.PoolConfigurator} "setReserveBorrowing(address,bool)" ${reserve.address} true --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+                const borrowingCommand = `cast send ${deployments.contracts.PoolConfigurator} "setReserveBorrowing(address,bool)" ${reserve.address} true --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`;
 
                 try {
                     const borrowingOutput = execSync(borrowingCommand, { stdio: 'pipe', encoding: 'utf8' });
@@ -498,7 +508,7 @@ async function deployCorePhase6() {
             // Set reserve factor (только если был инициализирован сейчас)
             if (!isInitialized) {
                 console.log(`📊 Step 6: Setting reserve factor...`);
-                const factorCommand = `cast send ${deployments.contracts.PoolConfigurator} "setReserveFactor(address,uint256)" ${reserve.address} ${reserve.reserveFactor} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+                const factorCommand = `cast send ${deployments.contracts.PoolConfigurator} "setReserveFactor(address,uint256)" ${reserve.address} ${reserve.reserveFactor} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`;
 
                 try {
                     const factorOutput = execSync(factorCommand, { stdio: 'pipe', encoding: 'utf8' });
@@ -564,7 +574,9 @@ async function deployCorePhase6() {
             let usdtPriceOracle;
             try {
                 console.log('📋 Step 3.1: Deploy SimplePriceOracle for USDT...');
-                const deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json`;
+                const deployCommand = isNeoX
+                    ? `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json`
+                    : `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json`;
 
                 const output = execSync(deployCommand, { encoding: 'utf8', stdio: 'pipe' });
 
@@ -578,7 +590,7 @@ async function deployCorePhase6() {
                 // Set USDT price to $1.00 (int256 format for Chainlink compatibility)
                 console.log('💵 Setting USDT price to $1.00...');
                 execSync(
-                    `cast send ${usdtPriceOracle} "setPrice(int256)" 100000000 --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`,
+                    `cast send ${usdtPriceOracle} "setPrice(int256)" 100000000 --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`,
                     { stdio: 'inherit' }
                 );
                 console.log('✅ USDT price set\n');
@@ -594,7 +606,9 @@ async function deployCorePhase6() {
             let wa7a5PriceOracle;
             try {
                 console.log('📋 Step 3.2: Deploy SimplePriceOracle for wA7A5...');
-                const deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json`;
+                const deployCommand = isNeoX
+                    ? `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json`
+                    : `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --broadcast --json`;
 
                 const output = execSync(deployCommand, { encoding: 'utf8', stdio: 'pipe' });
 
@@ -608,7 +622,7 @@ async function deployCorePhase6() {
                 // Set wA7A5 price to $0.0111 (1 USDT = 90 A7A5) (int256 format for Chainlink compatibility)
                 console.log('💎 Setting wA7A5 price to $0.0111...');
                 execSync(
-                    `cast send ${wa7a5PriceOracle} "setPrice(int256)" 1111111 --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`,
+                    `cast send ${wa7a5PriceOracle} "setPrice(int256)" 1111111 --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`,
                     { stdio: 'inherit' }
                 );
                 console.log('✅ wA7A5 price set\n');
@@ -626,7 +640,7 @@ async function deployCorePhase6() {
                 console.log('  Assets: [USDT, wA7A5]');
                 console.log('  Sources: [usdtPriceOracle, wa7a5PriceOracle]');
 
-                const setSourcesCommand = `cast send ${ORACLE} "setAssetSources(address[],address[])" "[${USDT},${WA7A5}]" "[${usdtPriceOracle},${wa7a5PriceOracle}]" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+                const setSourcesCommand = `cast send ${ORACLE} "setAssetSources(address[],address[])" "[${USDT},${WA7A5}]" "[${usdtPriceOracle},${wa7a5PriceOracle}]" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`;
 
                 execSync(setSourcesCommand, { stdio: 'inherit' });
                 console.log('✅ Asset sources set successfully!\n');

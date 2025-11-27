@@ -8,6 +8,17 @@ async function fixWA7A5Collateral() {
     console.log('🔧 HOTFIX: Configuring wA7A5 as collateral');
     console.log('==========================================\n');
 
+    // Network detection
+    const network = process.env.NETWORK || 'sepolia';
+    const isNeoX = network.includes('neox');
+    const legacyFlag = isNeoX ? '--legacy' : '';
+
+    console.log(`🌐 Network: ${network}`);
+    if (isNeoX) {
+        console.log('⚡ Using legacy transactions for NEO X');
+    }
+    console.log('');
+
     // Load deployments
     const deployments = JSON.parse(fs.readFileSync('deployments/all-contracts.json', 'utf8'));
 
@@ -48,7 +59,7 @@ async function fixWA7A5Collateral() {
     console.log('💡 Using correct Aave v3.5 signature: configureReserveAsCollateral(address,uint256,uint256,uint256)');
     console.log('');
 
-    const collateralCommand = `cast send ${poolConfigurator} "configureReserveAsCollateral(address,uint256,uint256,uint256)" ${wA7A5Address} ${ltv} ${liquidationThreshold} ${liquidationBonus} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+    const collateralCommand = `cast send ${poolConfigurator} "configureReserveAsCollateral(address,uint256,uint256,uint256)" ${wA7A5Address} ${ltv} ${liquidationThreshold} ${liquidationBonus} --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`;
 
     try {
         const output = execSync(collateralCommand, { stdio: 'pipe', encoding: 'utf8' });

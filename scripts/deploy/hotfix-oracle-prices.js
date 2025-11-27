@@ -19,7 +19,16 @@ async function hotfixOraclePrices() {
     const provider = new ethers.JsonRpcProvider(process.env.RPC_URL_SEPOLIA);
     const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
 
+    // Network detection
+    const network = process.env.NETWORK || 'sepolia';
+    const isNeoX = network.includes('neox');
+    const legacyFlag = isNeoX ? '--legacy' : '';
+
     console.log('📋 Deployer:', wallet.address);
+    console.log(`🌐 Network: ${network}`);
+    if (isNeoX) {
+        console.log('⚡ Using legacy transactions for NEO X');
+    }
     const balance = await provider.getBalance(wallet.address);
     console.log('💰 Balance:', ethers.formatEther(balance), 'ETH\n');
 
@@ -46,7 +55,9 @@ async function hotfixOraclePrices() {
     let usdtPriceOracle;
 
     try {
-        const deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json`;
+        const deployCommand = isNeoX
+            ? `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json`
+            : `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json`;
 
         console.log('🚀 Deploying SimplePriceOracle for USDT...');
         const output = execSync(deployCommand, { encoding: 'utf8', stdio: 'pipe' });
@@ -61,7 +72,7 @@ async function hotfixOraclePrices() {
         // Set USDT price to $1.00 (100000000 in 8 decimals)
         console.log('\n💵 Setting USDT price to $1.00...');
         execSync(
-            `cast send ${usdtPriceOracle} "setPrice(int256)" 100000000 --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`,
+            `cast send ${usdtPriceOracle} "setPrice(int256)" 100000000 --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`,
             { stdio: 'inherit' }
         );
         console.log('✅ USDT price set to $1.00');
@@ -88,7 +99,9 @@ async function hotfixOraclePrices() {
     let wa7a5PriceOracle;
 
     try {
-        const deployCommand = `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json`;
+        const deployCommand = isNeoX
+            ? `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --legacy --broadcast --json`
+            : `forge create "contracts/mocks/SimplePriceOracle.sol:SimplePriceOracle" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} --verify --etherscan-api-key ${process.env.ETHERSCAN_API_KEY} --broadcast --json`;
 
         console.log('🚀 Deploying SimplePriceOracle for wA7A5...');
         const output = execSync(deployCommand, { encoding: 'utf8', stdio: 'pipe' });
@@ -103,7 +116,7 @@ async function hotfixOraclePrices() {
         // Set wA7A5 price to $0.0111 (1111111 in 8 decimals) // 1 USDT = 90 A7A5
         console.log('\n💎 Setting wA7A5 price to $0.0111 (1 USDT = 90 A7A5)...');
         execSync(
-            `cast send ${wa7a5PriceOracle} "setPrice(int256)" 1111111 --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`,
+            `cast send ${wa7a5PriceOracle} "setPrice(int256)" 1111111 --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`,
             { stdio: 'inherit' }
         );
         console.log('✅ wA7A5 price set to $0.0111');
@@ -132,7 +145,7 @@ async function hotfixOraclePrices() {
         console.log('  Assets: [USDT, wA7A5]');
         console.log('  Sources: [usdtPriceOracle, wa7a5PriceOracle]');
 
-        const setSourcesCommand = `cast send ${ORACLE} "setAssetSources(address[],address[])" "[${USDT},${WA7A5}]" "[${usdtPriceOracle},${wa7a5PriceOracle}]" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA}`;
+        const setSourcesCommand = `cast send ${ORACLE} "setAssetSources(address[],address[])" "[${USDT},${WA7A5}]" "[${usdtPriceOracle},${wa7a5PriceOracle}]" --private-key ${process.env.DEPLOYER_PRIVATE_KEY} --rpc-url ${process.env.RPC_URL_SEPOLIA} ${legacyFlag}`;
 
         execSync(setSourcesCommand, { stdio: 'inherit' });
         console.log('✅ Asset sources set successfully!');
