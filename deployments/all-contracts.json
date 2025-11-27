@@ -1,8 +1,8 @@
 {
   "network": "neox-testnet",
   "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
-  "timestamp": "2025-11-27T12:16:12.158Z",
-  "phase": "core-3-completed",
+  "timestamp": "2025-11-27T12:27:04.565Z",
+  "phase": "core-3.1-completed",
   "libraries": {
     "WadRayMath": "0x3BFF3E7a3F38091465b23230fd695fd92878049E",
     "PercentageMath": "0x7Efc7985A1F0665BDd2Da52cd166F870DB815e58",
@@ -26,6 +26,8 @@
     "AaveOracle": "0x6e6A9582dc97827621312bEb6095FDCEBFB4679A",
     "DefaultReserveInterestRateStrategyV2": "0xB9b6e54BE8a948eeF0653E6CE3eB67138216fE07",
     "PoolInstance_Implementation": "0x394CCE45c7D78365098DdD714586129DFAa7D21D",
-    "Pool": "0xc6716a9c596c85ae593f8eb0d23afd4f051877cf"
+    "Pool": "0xc6716a9c596c85ae593f8eb0d23afd4f051877cf",
+    "PoolConfigurator_Implementation": "0x5467D15B71B3e497eDB9C0978cBCDE23a06f4Ac8",
+    "PoolConfigurator": "0x9FFb0f2AF3B613cFAD0e035A787D2f2017C2FAEB"
   }
 }
