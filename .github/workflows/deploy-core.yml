@@ -299,6 +299,7 @@ jobs:
           npm install
           npm install ethers@6 solc@${{ env.SOLC_VERSION }}
           npm install @openzeppelin/contracts@5.1.0
+          npm install @openzeppelin/contracts-upgradeable@5.1.0
 
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -352,6 +353,7 @@ jobs:
           npm install
           npm install ethers@6 solc@${{ env.SOLC_VERSION }}
           npm install @openzeppelin/contracts@5.1.0
+          npm install @openzeppelin/contracts-upgradeable@5.1.0
 
       - name: Deploy PoolConfigurator Implementation + Create Proxy
         env:
@@ -447,6 +449,7 @@ jobs:
           npm install
           npm install ethers@6 solc@${{ env.SOLC_VERSION }}
           npm install @openzeppelin/contracts@5.1.0
+          npm install @openzeppelin/contracts-upgradeable@5.1.0
 
       - name: Deploy wA7A5 Token (100 billion supply)
         env:
