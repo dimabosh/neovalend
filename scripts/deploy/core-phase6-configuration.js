@@ -1,11 +1,93 @@
 const { ethers } = require('ethers');
 const fs = require('fs');
 const { execSync } = require('child_process');
+const path = require('path');
+const os = require('os');
 
 // CORE Phase 6: Protocol Configuration (Aave v3.5)
 // Настройка PoolConfigurator и инициализация 6 резервов:
 // WGAS, NEO, USDT, USDC, ETH, BTC
 // Поддержка NEO X с --legacy флагом для транзакций
+
+/**
+ * Creates Standard JSON Input for verification via Blockscout API
+ */
+function createStandardJsonInput(contractName, flattenedSource) {
+    return {
+        language: "Solidity",
+        sources: {
+            [`${contractName}.sol`]: {
+                content: flattenedSource
+            }
+        },
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200
+            },
+            evmVersion: "shanghai",
+            metadata: {
+                bytecodeHash: "none",
+                useLiteralContent: false,
+                appendCBOR: true
+            },
+            viaIR: false,
+            outputSelection: {
+                "*": {
+                    "*": ["abi", "evm.bytecode", "evm.deployedBytecode", "metadata"]
+                }
+            }
+        }
+    };
+}
+
+/**
+ * Verifies contract via Blockscout Standard Input API
+ */
+async function verifyViaBlockscout(contractAddress, contractName, contractPath, verifierBaseUrl) {
+    console.log(`   🔄 Verifying ${contractName} via Blockscout...`);
+
+    try {
+        // 1. Flatten source code
+        const flattenedSource = execSync(`forge flatten "${contractPath}"`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe']
+        });
+
+        // 2. Create Standard JSON Input
+        const stdJsonInput = createStandardJsonInput(contractName, flattenedSource);
+
+        // 3. Save to temp file (required for multipart upload)
+        const tempFile = path.join(os.tmpdir(), `${contractName}_input.json`);
+        fs.writeFileSync(tempFile, JSON.stringify(stdJsonInput));
+
+        // 4. Submit via curl multipart form
+        const apiUrl = `${verifierBaseUrl}/api/v2/smart-contracts/${contractAddress}/verification/via/standard-input`;
+
+        const curlCmd = `curl -s -L -X POST "${apiUrl}" \
+            --form 'compiler_version=v0.8.27+commit.40a35a09' \
+            --form 'contract_name=${contractName}' \
+            --form 'license_type=none' \
+            --form 'files[0]=@${tempFile};filename=input.json;type=application/json'`;
+
+        const result = execSync(curlCmd, { encoding: 'utf8', timeout: 60000 });
+
+        // Cleanup temp file
+        try { fs.unlinkSync(tempFile); } catch (e) {}
+
+        const response = JSON.parse(result);
+        if (response.message === "Smart-contract verification started") {
+            console.log(`   ✅ Verification started for ${contractName}`);
+            return true;
+        } else {
+            console.log(`   ⚠️ API response: ${result.substring(0, 100)}`);
+            return false;
+        }
+    } catch (error) {
+        console.log(`   ⚠️ Verification failed: ${error.message?.substring(0, 80) || 'unknown'}`);
+        return false;
+    }
+}
 
 async function deployCorePhase6() {
     console.log('🚀 CORE Phase 6: Protocol Configuration (Aave v3.5)');
@@ -25,6 +107,9 @@ async function deployCorePhase6() {
     const isNeoX = network.includes('neox');
     const rpcUrl = process.env.RPC_URL_SEPOLIA;
     const legacyFlag = isNeoX ? '--legacy' : '';
+    const verifierBaseUrl = network === 'neox-mainnet'
+        ? 'https://xexplorer.neo.org'
+        : 'https://xt4scan.ngd.network';
 
     console.log(`\n🌐 Network: ${network}`);
     console.log(`📡 RPC URL: ${rpcUrl}`);
@@ -556,6 +641,16 @@ async function deployCorePhase6() {
                 const json = JSON.parse(jsonMatch[0]);
                 priceOracles[reserve.symbol] = json.deployedTo;
                 console.log(`✅ ${reserve.name} SimplePriceOracle deployed: ${priceOracles[reserve.symbol]}`);
+
+                // Verify on Blockscout for NEO X networks
+                if (isNeoX) {
+                    await verifyViaBlockscout(
+                        priceOracles[reserve.symbol],
+                        'SimplePriceOracle',
+                        'contracts/mocks/SimplePriceOracle.sol',
+                        verifierBaseUrl
+                    );
+                }
             }
 
             await new Promise(resolve => setTimeout(resolve, 5000));
