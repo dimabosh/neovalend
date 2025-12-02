@@ -31,6 +31,7 @@ on:
           - 'hotfix-oracle'     # HOTFIX: Configure Oracle price sources (REQUIRED for getUserAccountData)
           - 'hotfix-v3'         # HOTFIX V3: Add WBTC + Fix USDT collateral (comprehensive)
           - 'hotfix-wgas-gateway' # HOTFIX: Deploy WrappedTokenGatewayV3 with WGAS (NEO X)
+          - 'hotfix-update-prices' # HOTFIX: Update oracle prices to real market values
           - 'faucet'            # Get test tokens (USDT, wA7A5, WBTC)
           - 'verify-only' # Verify all contracts
           - 'status'      # Show deployment status
@@ -838,6 +839,48 @@ jobs:
           git add deployments/ || true
           git commit -m "🔧 HOTFIX: WrappedTokenGatewayV3 deployed with WGAS ✅" || exit 0
           git push
+
+  # HOTFIX: Update Oracle Prices to real market values
+  hotfix-update-prices:
+    if: github.event.inputs.phase == 'hotfix-update-prices'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Foundry (for cast commands)
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Update Oracle Prices
+        env:
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || secrets.RPC_URL_SEPOLIA }}
+          FOUNDRY_DISABLE_NIGHTLY_WARNING: true
+          NETWORK: ${{ github.event.inputs.network }}
+        run: |
+          echo "🔧 HOTFIX: Update Oracle Prices"
+          echo "💰 Cost: ~$0.02 USD | 6 transactions"
+          echo ""
+          echo "📋 New prices:"
+          echo "  - WGAS: $2.20"
+          echo "  - NEO: $4.30"
+          echo "  - USDT: $1.00"
+          echo "  - USDC: $1.00"
+          echo "  - ETH: $3,000"
+          echo "  - BTC: $90,000"
+          echo ""
+          node scripts/deploy/hotfix-update-prices.js
 
   # Phase Faucet: Deploy Faucet Contract for Token Distribution
   faucet:
