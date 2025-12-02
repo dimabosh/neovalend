@@ -1,8 +1,8 @@
 {
   "network": "neox-testnet",
   "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
-  "timestamp": "2025-12-02T15:56:29.245Z",
-  "phase": "core-6-completed",
+  "timestamp": "2025-12-02T16:09:17.749Z",
+  "phase": "core-5.1-completed",
   "tokens": {
     "NEO": "0x8B0652a4db1670741dAb3c4bf882afbACDb44D3C",
     "USDT": "0xbCEAb9b0cee639E8b37607eBA8370e60789bcE7C",
