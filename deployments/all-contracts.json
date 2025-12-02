@@ -1,8 +1,8 @@
 {
   "network": "neox-testnet",
   "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
-  "timestamp": "2025-11-27T16:38:59.091Z",
-  "phase": "core-5-completed",
+  "timestamp": "2025-12-02T15:56:29.245Z",
+  "phase": "core-6-completed",
   "tokens": {
     "NEO": "0x8B0652a4db1670741dAb3c4bf882afbACDb44D3C",
     "USDT": "0xbCEAb9b0cee639E8b37607eBA8370e60789bcE7C",
@@ -44,5 +44,13 @@
     "UiIncentiveDataProviderV3": "0x8Ac74680dBD5111563f80B00bcDeaCB6d53Fdd10",
     "WrappedTokenGatewayV3": "0x6626f8CBa71ADaD1Ab0D1C0c1999c1632D02726d"
   },
-  "status": "CORE_PROTOCOL_COMPLETE"
+  "status": "PROTOCOL_FULLY_CONFIGURED",
+  "priceOracles": {
+    "WGAS": "0xe8D98363d704489b2AFe8F786Ec882ab3C443522",
+    "NEO": "0x3Ed1098787211a5aCe15f1c107EC6f0C38Ee822f",
+    "USDT": "0x507e9281921d1F964243787e7B869CCb0096F803",
+    "USDC": "0xD73de6d05Ee9D084f31e376257F8AdbEb25E4Dd9",
+    "ETH": "0x2f7809955db50a2E7988a238CDfab32fD4eEBe9f",
+    "BTC": "0x0fF30828DEE1C3C24723C57fEc145C90127d5f28"
+  }
 }
