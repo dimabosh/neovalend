@@ -105,9 +105,25 @@ export function Dashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Get reserve data for all assets upfront (before any conditional rendering)
-  const usdtReserveData = useReserveData(RESERVE_ASSETS.USDT.address as Address);
-  const btcReserveData = useReserveData(RESERVE_ASSETS.BTC.address as Address);
   const wgasReserveData = useReserveData(RESERVE_ASSETS.WGAS.address as Address);
+  const neoReserveData = useReserveData(RESERVE_ASSETS.NEO.address as Address);
+  const usdtReserveData = useReserveData(RESERVE_ASSETS.USDT.address as Address);
+  const usdcReserveData = useReserveData(RESERVE_ASSETS.USDC.address as Address);
+  const ethReserveData = useReserveData(RESERVE_ASSETS.ETH.address as Address);
+  const btcReserveData = useReserveData(RESERVE_ASSETS.BTC.address as Address);
+
+  // Helper to get reserve data by asset key
+  const getReserveDataByAsset = (assetKey: string) => {
+    switch (assetKey) {
+      case 'WGAS': return wgasReserveData;
+      case 'NEO': return neoReserveData;
+      case 'USDT': return usdtReserveData;
+      case 'USDC': return usdcReserveData;
+      case 'ETH': return ethReserveData;
+      case 'BTC': return btcReserveData;
+      default: return null;
+    }
+  };
 
   // Debug: log account data when it changes
   if (accountData && !(window as any).lastAccountDataLog) {
@@ -172,7 +188,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo - clickable */}
             <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer">
-              <img src="/img/logo_3.png" alt="NeovaLend" className="h-8 sm:h-10 w-auto object-contain" />
+              <img src="/img/logo_2.png" alt="NeovaLend" className="h-8 sm:h-10 w-auto object-contain" />
               <span className="text-lg sm:text-xl font-bold text-white hidden sm:inline">NeovaLend</span>
             </a>
 
@@ -349,10 +365,8 @@ export function Dashboard() {
                       {activeSuppliedPositions
                         .sort((a, b) => a.assetConfig.symbol === 'WGAS' ? -1 : 1)
                         .map((position) => {
-                          // Get reserve data for this position (no hooks in map!)
-                          const reserveData = position.asset === 'USDT' ? usdtReserveData :
-                                            position.asset === 'BTC' ? btcReserveData :
-                                            wgasReserveData;
+                          // Get reserve data for this position
+                          const reserveData = getReserveDataByAsset(position.asset);
 
                           return (
                         <div key={position.asset} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-slate-700/30 rounded-lg gap-3">
@@ -482,10 +496,8 @@ export function Dashboard() {
                       {activeBorrowedPositions
                         .sort((a, b) => a.assetConfig.symbol === 'WGAS' ? -1 : 1)
                         .map((position) => {
-                          // Get reserve data for this position (no hooks in map!)
-                          const reserveData = position.asset === 'USDT' ? usdtReserveData :
-                                            position.asset === 'BTC' ? btcReserveData :
-                                            wgasReserveData;
+                          // Get reserve data for this position
+                          const reserveData = getReserveDataByAsset(position.asset);
 
                           return (
                         <div key={position.asset} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-slate-700/30 rounded-lg gap-3">

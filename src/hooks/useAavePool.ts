@@ -99,6 +99,8 @@ export function useUserAccountData(userAddress?: Address) {
     args: userAddress ? [userAddress] : undefined,
     query: {
       enabled: !!userAddress,
+      refetchInterval: 5000, // Refetch every 5 seconds for fresh health factor
+      gcTime: 0, // Don't cache results
     }
   });
 
@@ -170,6 +172,8 @@ export function useReserveData(assetAddress?: Address) {
     args: assetAddress ? [assetAddress] : undefined,
     query: {
       enabled: !!assetAddress,
+      refetchInterval: 5000, // Refetch every 5 seconds for fresh rates
+      gcTime: 0, // Don't cache results
     }
   });
 
