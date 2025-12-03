@@ -91,8 +91,12 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
     symbol
   } = useTokenData(tokenAddress, poolAddress, address);
 
+  // Get reserve data first to get aToken address
+  const reserveData = useReserveData(tokenAddress);
+
   // Get aToken balance to check if user has deposits
-  const aTokenAddress = assetConfig.aToken as Address;
+  // aTokenAddress comes from reserveData (fetched from blockchain)
+  const aTokenAddress = reserveData?.aTokenAddress as Address | undefined;
   const { balance: aTokenBalance } = useTokenData(aTokenAddress, undefined, address);
 
   // Reset isFirstDeposit when dialog opens and user already has deposits
@@ -114,9 +118,6 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
 
   const hasAnyDeposits = aTokenBalanceNum > 0; // ANY amount including dust
   const hasMeaningfulDeposits = aTokenBalanceNum >= minMeaningfulBalance; // Only meaningful amounts
-
-  // Get reserve data for real interest rates
-  const reserveData = useReserveData(tokenAddress);
 
   // Get user account data for Health Factor calculation
   const accountData = useUserAccountData(address);
