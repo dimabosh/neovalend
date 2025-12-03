@@ -338,6 +338,60 @@ export const WRAPPED_TOKEN_GATEWAY_ABI = [
   },
 ] as const;
 
+// SimpleFaucet contract address (deploy via scripts/deploy/phase-faucet.js)
+export const SIMPLE_FAUCET_ADDRESS = '' as const; // TODO: Set after deployment
+
+export const SIMPLE_FAUCET_ABI = [
+  {
+    inputs: [{ name: 'token', type: 'address' }],
+    name: 'claim',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'tokens', type: 'address[]' }],
+    name: 'claimMultiple',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'user', type: 'address' },
+      { name: 'token', type: 'address' }
+    ],
+    name: 'canClaim',
+    outputs: [
+      { name: 'canClaim', type: 'bool' },
+      { name: 'timeUntilClaim', type: 'uint256' }
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'token', type: 'address' }],
+    name: 'getBalance',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'token', type: 'address' }],
+    name: 'claimAmounts',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'cooldownPeriod',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
 // Helper functions
 export function getContractConfig(chainId: number) {
   switch (chainId) {
