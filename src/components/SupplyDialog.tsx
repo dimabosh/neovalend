@@ -5,10 +5,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAccount, useWaitForTransactionReceipt, usePublicClient, useWriteContract } from 'wagmi';
-import { Address, formatUnits } from 'viem';
+import { useAccount, useWaitForTransactionReceipt, usePublicClient, useWriteContract, useBalance } from 'wagmi';
+import { Address, formatUnits, parseEther } from 'viem';
 import { useAavePool, useTokenData, useTokenApproval, useReserveData, useUserAccountData, useUserConfiguration } from '@/hooks/useAavePool';
-import { RESERVE_ASSETS, getContractConfig, NEOX_TESTNET_CONTRACTS, POOL_ABI } from '@/config/contracts';
+import { RESERVE_ASSETS, getContractConfig, NEOX_TESTNET_CONTRACTS, POOL_ABI, WRAPPED_TOKEN_GATEWAY_ABI } from '@/config/contracts';
+
+// Gateway contract address
+const WRAPPED_TOKEN_GATEWAY = '0x6626f8CBa71ADaD1Ab0D1C0c1999c1632D02726d' as const;
 import { useChainId } from 'wagmi';
 import { TransactionModal } from './TransactionModal';
 import { formatNumber } from '@/lib/utils';
@@ -31,6 +34,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
   const [cleanupStep, setCleanupStep] = useState<'idle' | 'checking' | 'approving' | 'repaying' | 'completed'>('idle');
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [isFirstDeposit, setIsFirstDeposit] = useState(false); // Track if this is first deposit to calculate steps correctly
+  const [useNativeGas, setUseNativeGas] = useState(true); // For WGAS: use native GAS by default
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -51,6 +55,13 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
   const publicClient = usePublicClient();
   const queryClient = useQueryClient();
   const { writeContractAsync: writeContract } = useWriteContract();
+
+  // Get native GAS balance (for WGAS deposits via Gateway)
+  const { data: nativeGasBalance, refetch: refetchNativeGas } = useBalance({
+    address: address,
+  });
+  const nativeGasFormatted = nativeGasBalance ? parseFloat(nativeGasBalance.formatted) : 0;
+  const isWGAS = asset === 'WGAS';
 
   const { supply, setUseAsCollateral: setCollateralStatus } = useAavePool();
   const { approve, approveMax } = useTokenApproval();
@@ -189,7 +200,54 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
     setIsLoading(true);
 
     try {
-      // Check if approval is needed
+      // WGAS with native GAS: Use Gateway (no approval needed!)
+      if (isWGAS && useNativeGas) {
+        console.log('🏦 Depositing native GAS via WrappedTokenGatewayV3...');
+        setTxStatus('pending');
+        setApprovalStep('approved'); // No approval needed for native GAS
+
+        // Call Gateway.depositETH with native GAS value
+        const depositHash = await writeContract({
+          address: WRAPPED_TOKEN_GATEWAY,
+          abi: WRAPPED_TOKEN_GATEWAY_ABI,
+          functionName: 'depositETH',
+          args: [poolAddress, address, 0], // pool, onBehalfOf, referralCode
+          value: parseEther(amount),
+        });
+        console.log('📝 Gateway deposit transaction sent:', depositHash);
+
+        // Wait for blockchain confirmation
+        console.log('⏳ Waiting for deposit confirmation...');
+        if (publicClient) {
+          await publicClient.waitForTransactionReceipt({ hash: depositHash });
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 15000));
+        }
+
+        console.log('✅ Native GAS deposit confirmed:', depositHash);
+
+        // Refresh balances
+        await queryClient.invalidateQueries();
+        refetchNativeGas();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        console.log('✅ Deposit successful via Gateway');
+        setTxStatus('success');
+        setCollateralStep('idle');
+        onOpenChange(false);
+
+        setTimeout(() => {
+          setAmount('');
+          setTxStatus('idle');
+          setApprovalStep('idle');
+          setCollateralStep('idle');
+          setIsFirstDeposit(false);
+        }, 3000);
+
+        return;
+      }
+
+      // Standard ERC20 deposit flow (WGAS token or other assets)
       const amountNumber = parseFloat(amount);
       const allowanceNumber = parseFloat(allowance);
 
@@ -281,8 +339,17 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
   };
 
   const handleMaxClick = () => {
-    setAmount(balance);
+    if (isWGAS && useNativeGas) {
+      // For native GAS, leave some for transaction fees
+      const maxAmount = Math.max(0, nativeGasFormatted - 0.01);
+      setAmount(maxAmount.toFixed(6));
+    } else {
+      setAmount(balance);
+    }
   };
+
+  // Get effective balance based on deposit mode
+  const effectiveBalance = isWGAS && useNativeGas ? nativeGasFormatted : parseFloat(balance);
 
   // Constants for dust threshold
   const dustThresholdUSD = 0.01;
@@ -542,8 +609,8 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
     }
   };
 
-  const isInsufficientBalance = parseFloat(amount || '0') > parseFloat(balance);
-  const needsApproval = parseFloat(amount || '0') > parseFloat(allowance);
+  const isInsufficientBalance = parseFloat(amount || '0') > effectiveBalance;
+  const needsApproval = isWGAS && useNativeGas ? false : parseFloat(amount || '0') > parseFloat(allowance);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -576,10 +643,61 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
             </div>
           </div>
 
+          {/* WGAS: Native GAS Toggle */}
+          {isWGAS && (
+            <div className="bg-slate-800/50 border border-slate-700 p-3 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-300">Deposit from:</span>
+                <div className="flex bg-slate-700 rounded-lg p-0.5">
+                  <button
+                    onClick={() => setUseNativeGas(true)}
+                    className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                      useNativeGas
+                        ? 'bg-blue-500 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Native GAS
+                  </button>
+                  <button
+                    onClick={() => setUseNativeGas(false)}
+                    className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                      !useNativeGas
+                        ? 'bg-blue-500 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    WGAS Token
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className={`p-2 rounded ${useNativeGas ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-slate-700/30'}`}>
+                  <div className="text-gray-400">Native GAS</div>
+                  <div className="text-white font-medium">{formatNumber(nativeGasFormatted, 4)}</div>
+                </div>
+                <div className={`p-2 rounded ${!useNativeGas ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-slate-700/30'}`}>
+                  <div className="text-gray-400">WGAS Token</div>
+                  <div className="text-white font-medium">{formatNumber(parseFloat(balance), 4)}</div>
+                </div>
+              </div>
+              {useNativeGas && (
+                <div className="mt-2 text-xs text-green-400">
+                  No approval needed - deposit directly!
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Balance Display */}
           <div className="flex items-center justify-between text-sm text-gray-400">
-            <span>Balance: {formatNumber(parseFloat(balance), 2)} {symbol}</span>
-            {parseFloat(balance) === 0 && (
+            <span>
+              {isWGAS && useNativeGas
+                ? `Native GAS: ${formatNumber(nativeGasFormatted, 4)}`
+                : `Balance: ${formatNumber(parseFloat(balance), 2)} ${symbol}`
+              }
+            </span>
+            {effectiveBalance === 0 && (
               <a
                 href="/faucet"
                 className="text-blue-400 hover:text-blue-300 text-xs underline"
@@ -685,6 +803,8 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
               'Connect wallet'
             ) : isInsufficientBalance ? (
               'Insufficient balance'
+            ) : isWGAS && useNativeGas ? (
+              'Deposit GAS'
             ) : needsApproval ? (
               `Approve and deposit ${symbol}`
             ) : (
