@@ -303,9 +303,13 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
                   <span>Available to borrow:</span>
                   <span className="font-medium">
                     {symbol === 'WGAS' ?
-                      `₽${formatNumber(Math.round(availableToBorrowUSD * 90))}` :
+                      `${formatNumber(availableToBorrowUSD / assetPriceUSD, 2)} WGAS (~$${formatNumber(Math.round(availableToBorrowUSD))})` :
                       symbol === 'BTC' ?
-                      `${formatNumber(availableToBorrowUSD / assetPriceUSD, 4)} BTC ($${formatNumber(Math.round(availableToBorrowUSD))})` :
+                      `${formatNumber(availableToBorrowUSD / assetPriceUSD, 4)} BTC (~$${formatNumber(Math.round(availableToBorrowUSD))})` :
+                      symbol === 'ETH' ?
+                      `${formatNumber(availableToBorrowUSD / assetPriceUSD, 4)} ETH (~$${formatNumber(Math.round(availableToBorrowUSD))})` :
+                      symbol === 'NEO' ?
+                      `${formatNumber(availableToBorrowUSD / assetPriceUSD, 2)} NEO (~$${formatNumber(Math.round(availableToBorrowUSD))})` :
                       `$${formatNumber(Math.round(availableToBorrowUSD))}`
                     }
                   </span>
