@@ -338,8 +338,8 @@ export const WRAPPED_TOKEN_GATEWAY_ABI = [
   },
 ] as const;
 
-// SimpleFaucet contract address (deploy via scripts/deploy/phase-faucet.js)
-export const SIMPLE_FAUCET_ADDRESS = '' as const; // TODO: Set after deployment
+// SimpleFaucet contract address (deployed on NEO X Testnet)
+export const SIMPLE_FAUCET_ADDRESS = '0x439455158daC8831dd7b2CAB1bEE4989597cbe40' as const;
 
 export const SIMPLE_FAUCET_ABI = [
   {
