@@ -1,43 +1,31 @@
-// Contract addresses and configuration
+// Contract addresses and configuration for NEO X Testnet
 export const CONTRACT_ADDRESSES = {
-  // Ethereum Mainnet addresses (to be deployed)
-  ETHEREUM_MAINNET: {
-    NEOVALEND_POOL: '0x0000000000000000000000000000000000000000',
-    A7A5_TOKEN: '0x0000000000000000000000000000000000000000',
-    USDT_TOKEN: '0xdAC17F958D2ee523a2206206994597C13D831ec7', // Real USDT on Ethereum
-  },
-  
-  // Sepolia Testnet addresses (Phase 6 deployment - CORRECT)
-  SEPOLIA: {
-    NEOVALEND_POOL: '0xF772368D6b1F16a0570e2010d5860EeB4681e884', // Pool Proxy (Phase 3.5)
-    A7A5_TOKEN: '0x752EbE7b0dD6C6B7a2C0914E99DE9c892655897c', // A7A5Token
-    USDT_TOKEN: '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0', // Test USDT
-    POOL_DATA_PROVIDER: '0x78f2754af2b839345bDB945EcaEd984FEf083865', // AaveProtocolDataProvider
-    UI_POOL_DATA_PROVIDER: '0x210536183080517a9c31f38D5956C9A0Ae9706b5', // UiPoolDataProviderV3
+  NEOX_TESTNET: {
+    NEOVALEND_POOL: '0xc6716a9c596c85ae593f8eb0d23afd4f051877cf',
+    POOL_DATA_PROVIDER: '0x73a3a6AfD28230118678B4D3926c844D4Ab6A43e',
+    UI_POOL_DATA_PROVIDER: '0xbd4d0C482A9f141a916938609a058E4A789B392E',
+    AAVE_ORACLE: '0x6e6A9582dc97827621312bEb6095FDCEBFB4679A',
+    WRAPPED_TOKEN_GATEWAY: '0x6626f8CBa71ADaD1Ab0D1C0c1999c1632D02726d',
+    // Tokens
+    WGAS_TOKEN: '0x9b9032D047D7F879F54F5b54aE0EcE03bef39a8e',
+    NEO_TOKEN: '0x8B0652a4db1670741dAb3c4bf882afbACDb44D3C',
+    USDT_TOKEN: '0xbCEAb9b0cee639E8b37607eBA8370e60789bcE7C',
+    USDC_TOKEN: '0x4d7B02c427e3508BbCc14f3079BB364c2Cf2a358',
+    ETH_TOKEN: '0x5f2f94b7F57C713EBA6c1b1aaC2Da7617617a609',
+    BTC_TOKEN: '0x456b48FA869d0409C953a9042e036Ab667cc47C5',
   },
 }
 
 // Network configuration
 export const NETWORKS = {
-  ETHEREUM: {
-    chainId: 1,
-    name: 'Ethereum',
-    rpcUrl: process.env.NEXT_PUBLIC_MAINNET_RPC_URL || 'https://eth-mainnet.g.alchemy.com/v2/demo',
-    blockExplorer: 'https://etherscan.io',
+  NEOX_TESTNET: {
+    chainId: 12227332,
+    name: 'NEO X Testnet',
+    rpcUrl: 'https://neoxt4seed1.ngd.network/',
+    blockExplorer: 'https://xt4scan.ngd.network',
     currency: {
-      name: 'Ether',
-      symbol: 'ETH',
-      decimals: 18,
-    }
-  },
-  SEPOLIA: {
-    chainId: 11155111,
-    name: 'Sepolia',
-    rpcUrl: process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || 'https://eth-sepolia.g.alchemy.com/v2/demo',
-    blockExplorer: 'https://sepolia.etherscan.io',
-    currency: {
-      name: 'Sepolia Ether',
-      symbol: 'ETH', 
+      name: 'GAS',
+      symbol: 'GAS',
       decimals: 18,
     }
   }
@@ -45,21 +33,40 @@ export const NETWORKS = {
 
 // Token configurations
 export const TOKENS = {
+  WGAS: {
+    symbol: 'WGAS',
+    name: 'Wrapped GAS',
+    decimals: 18,
+    priceUSD: 2.20,
+  },
+  NEO: {
+    symbol: 'NEO',
+    name: 'NEO Token',
+    decimals: 18,
+    priceUSD: 4.30,
+  },
   USDT: {
     symbol: 'USDT',
     name: 'Tether USD',
     decimals: 6,
-    depositAPY: 5.0,
-    borrowAPY: 7.0,
-    hasRebase: false,
+    priceUSD: 1.00,
   },
-  A7A5: {
-    symbol: 'A7A5',
-    name: 'A7A5 Rebase Token',
+  USDC: {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    priceUSD: 1.00,
+  },
+  ETH: {
+    symbol: 'ETH',
+    name: 'Ethereum',
     decimals: 18,
-    depositAPY: 7.0,
-    borrowAPY: 9.0,
-    rebaseAPY: 3.5,
-    hasRebase: true,
+    priceUSD: 3000,
+  },
+  BTC: {
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    decimals: 8,
+    priceUSD: 90000,
   }
 }

@@ -1,100 +1,106 @@
-// Contract addresses for Neovalend Protocol on Sepolia Testnet
-// Generated from successful protocol deployment and configuration
+// Contract addresses for Neovalend Protocol on NEO X Testnet
+// Deployed via GitHub Actions - Phase 1-6 Complete
 
-export const SEPOLIA_CONTRACTS = {
-  // Core Protocol Contracts - PRODUCTION (fully configured, all reserves active)
-  POOL: '0xD272575622c700C44a1769EbD1a3DbFA74f2ae55', // Pool Proxy (PRODUCTION)
-  POOL_CONFIGURATOR: '0xA80b7454e6E66f19de9d0b7a081923Cc85013D68', // PoolConfigurator Proxy (PRODUCTION)
-  POOL_ADDRESSES_PROVIDER: '0x77b36e79E28F36b87Bc5EDBe05322DC229e1A0F3', // PoolAddressesProvider
-  ACL_MANAGER: '0xc6E9b33550cAb966f114481B6Dce4BDFaa72bCaF', // ACLManager
-  
+export const NEOX_TESTNET_CONTRACTS = {
+  // Core Protocol Contracts
+  POOL: '0xc6716a9c596c85ae593f8eb0d23afd4f051877cf',
+  POOL_CONFIGURATOR: '0x9FFb0f2AF3B613cFAD0e035A787D2f2017C2FAEB',
+  POOL_ADDRESSES_PROVIDER: '0x547131d90dd9EfB1cFC253038788De5a5C2bC1Ba',
+  ACL_MANAGER: '0x4dea05b5392D48256f2f3572c92559ad0eAa8459',
+
   // Data Providers & UI Helpers
-  AAVE_PROTOCOL_DATA_PROVIDER: '0x78f2754af2b839345bDB945EcaEd984FEf083865',
-  UI_POOL_DATA_PROVIDER_V3: '0x210536183080517a9c31f38D5956C9A0Ae9706b5',
-  UI_INCENTIVE_DATA_PROVIDER_V3: '0xaeF7165Ecf80cA19c8efAE6B08627C417E6b1a41',
-  
+  AAVE_PROTOCOL_DATA_PROVIDER: '0x73a3a6AfD28230118678B4D3926c844D4Ab6A43e',
+  UI_POOL_DATA_PROVIDER_V3: '0xbd4d0C482A9f141a916938609a058E4A789B392E',
+  UI_INCENTIVE_DATA_PROVIDER_V3: '0x8Ac74680dBD5111563f80B00bcDeaCB6d53Fdd10',
+
   // Price Oracle
-  AAVE_ORACLE: '0x568b266ef3F109d165e634119768942D06E3e623', // Phase 2.1
+  AAVE_ORACLE: '0x6e6A9582dc97827621312bEb6095FDCEBFB4679A',
 
   // Interest Rate Strategy
-  DEFAULT_INTEREST_RATE_STRATEGY_V2: '0x4438c9B0D2bC0eF81F1a0b0485B742c8E0833d2F', // Phase 2.1
-  
+  DEFAULT_INTEREST_RATE_STRATEGY_V2: '0xB9b6e54BE8a948eeF0653E6CE3eB67138216fE07',
+
   // Token Implementations
-  ATOKEN_INSTANCE: '0x8F5b74e604Bc40c131E5945ea1E370a0dB9Da0ca', // Phase 4
-  VARIABLE_DEBT_TOKEN_INSTANCE: '0xdC1e7A2308d4f5e293f1B7948235AFE0D712A36b', // Phase 4
+  ATOKEN_INSTANCE: '0x4d12c902Fc2E755163b820ADC0931F93A17E9232',
+  VARIABLE_DEBT_TOKEN_INSTANCE: '0x5255Ba17B81Bcbe7b67d8eCdcd31A100f7474647',
 
-  // Gateway for ETH operations
-  WRAPPED_TOKEN_GATEWAY_V3: '0x59D8FcbF5a2eCbadaa3A454123D62ecc296ec948', // Phase 5
-
-  // Testnet Faucet
-  FAUCET: '0x9113aDE01DC5141aa492E3cd9c142A117311B7Ef', // Phase Faucet (2025-10-10)
+  // Gateway for native GAS operations
+  WRAPPED_TOKEN_GATEWAY_V3: '0x6626f8CBa71ADaD1Ab0D1C0c1999c1632D02726d',
 } as const;
 
-// Supported Reserve Assets
+// Supported Reserve Assets on NEO X Testnet
 export const RESERVE_ASSETS = {
-  wA7A5: {
-    address: '0x18fb744Eb960480179006E3391293c77bB6f8De6', // wA7A5 (Phase 3.2)
-    aToken: '0xf5Ff32678389CfC846F13A7F9034C94338445aB9', // rA7A5 (Phase 6)
-    variableDebtToken: '0x9c87Db9324f304839DeB156C648D594e6929703B', // Variable Debt wA7A5 (Phase 6)
-    symbol: 'wA7A5',
-    name: 'Wrapped A7A5 Token',
+  WGAS: {
+    address: '0x9b9032D047D7F879F54F5b54aE0EcE03bef39a8e',
+    symbol: 'WGAS',
+    name: 'Wrapped GAS',
     decimals: 18,
-    reserveIndex: 1, // Aave reserve index (for getUserConfiguration bitmap) - FIXED
-    // Interest rate configuration
-    rates: {
-      baseRate: '8%',
-      slope1: '8%',
-      slope2: '120%',
-      optimalUtilization: '80%',
-      reserveFactor: '15%'
-    },
-    // Collateral parameters (conservative due to rebase risk)
+    reserveIndex: 0,
+    priceUSD: 2.20,
     collateral: {
-      ltv: '50%',
-      liquidationThreshold: '60%',
-      liquidationBonus: '15%'
+      ltv: '75%',
+      liquidationThreshold: '80%',
+      liquidationBonus: '5%'
+    }
+  },
+  NEO: {
+    address: '0x8B0652a4db1670741dAb3c4bf882afbACDb44D3C',
+    symbol: 'NEO',
+    name: 'NEO Token',
+    decimals: 18,
+    reserveIndex: 1,
+    priceUSD: 4.30,
+    collateral: {
+      ltv: '65%',
+      liquidationThreshold: '70%',
+      liquidationBonus: '10%'
     }
   },
   USDT: {
-    address: '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0', // Aave Sepolia USDT Faucet
-    aToken: '0x3E48331829479C46e583b79A2D03bCEAAc3d0051', // rUSDT (Phase 6)
-    variableDebtToken: '0x86a389a826083E12f56F3c40dd92396C40943a3B', // Variable Debt USDT (Phase 6)
+    address: '0xbCEAb9b0cee639E8b37607eBA8370e60789bcE7C',
     symbol: 'USDT',
     name: 'Tether USD',
     decimals: 6,
-    reserveIndex: 0, // Aave reserve index (for getUserConfiguration bitmap) - FIXED
-    // Interest rate configuration
-    rates: {
-      baseRate: '4%',
-      slope1: '4.5%',
-      slope2: '60%',
-      optimalUtilization: '80%',
-      reserveFactor: '15%'
-    },
-    // Collateral parameters
+    reserveIndex: 2,
+    priceUSD: 1.00,
+    collateral: {
+      ltv: '80%',
+      liquidationThreshold: '85%',
+      liquidationBonus: '5%'
+    }
+  },
+  USDC: {
+    address: '0x4d7B02c427e3508BbCc14f3079BB364c2Cf2a358',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    reserveIndex: 3,
+    priceUSD: 1.00,
+    collateral: {
+      ltv: '80%',
+      liquidationThreshold: '85%',
+      liquidationBonus: '5%'
+    }
+  },
+  ETH: {
+    address: '0x5f2f94b7F57C713EBA6c1b1aaC2Da7617617a609',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    decimals: 18,
+    reserveIndex: 4,
+    priceUSD: 3000,
     collateral: {
       ltv: '80%',
       liquidationThreshold: '82.5%',
       liquidationBonus: '5%'
     }
   },
-  WBTC: {
-    address: '0x29f2D40B0605204364af54EC677bD022dA425d03', // Sepolia WBTC
-    aToken: '0xeb39b50930C20b9CB6e90421c484555D51d267E5', // aWBTC
-    variableDebtToken: '0xc815ccfF640ac1eD0ebBD11c5F90f61D361ac3b9', // variableDebtWBTC
-    symbol: 'WBTC',
-    name: 'Wrapped Bitcoin',
+  BTC: {
+    address: '0x456b48FA869d0409C953a9042e036Ab667cc47C5',
+    symbol: 'BTC',
+    name: 'Bitcoin',
     decimals: 8,
-    reserveIndex: 2, // Aave reserve index (for getUserConfiguration bitmap)
-    // Interest rate configuration
-    rates: {
-      baseRate: '0%',
-      slope1: '4%',
-      slope2: '300%',
-      optimalUtilization: '80%',
-      reserveFactor: '15%'
-    },
-    // Collateral parameters (conservative for volatile asset)
+    reserveIndex: 5,
+    priceUSD: 90000,
     collateral: {
       ltv: '70%',
       liquidationThreshold: '75%',
@@ -105,17 +111,22 @@ export const RESERVE_ASSETS = {
 
 // Network Configuration
 export const NETWORK_CONFIG = {
-  SEPOLIA: {
-    chainId: 11155111,
-    name: 'Sepolia',
-    rpcUrl: process.env.NEXT_PUBLIC_RPC_URL_SEPOLIA,
-    blockExplorer: 'https://sepolia.etherscan.io',
-    contracts: SEPOLIA_CONTRACTS,
+  NEOX_TESTNET: {
+    chainId: 12227332,
+    name: 'NEO X Testnet',
+    rpcUrl: 'https://neoxt4seed1.ngd.network/',
+    blockExplorer: 'https://xt4scan.ngd.network',
+    nativeCurrency: {
+      name: 'GAS',
+      symbol: 'GAS',
+      decimals: 18
+    },
+    contracts: NEOX_TESTNET_CONTRACTS,
     reserves: RESERVE_ASSETS
   }
 } as const;
 
-// ABI imports - using consistent JSON format
+// ABI imports
 export const POOL_ABI = [
   {
     inputs: [
@@ -192,9 +203,7 @@ export const POOL_ABI = [
   {
     inputs: [{ name: 'user', type: 'address' }],
     name: 'getUserConfiguration',
-    outputs: [
-      { name: 'data', type: 'uint256' }
-    ],
+    outputs: [{ name: 'data', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -224,6 +233,13 @@ export const POOL_ABI = [
         ]
       }
     ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getReservesList',
+    outputs: [{ name: '', type: 'address[]' }],
     stateMutability: 'view',
     type: 'function',
   }
@@ -297,40 +313,27 @@ export const ORACLE_ABI = [
   },
 ] as const;
 
-export const FAUCET_ABI = [
+export const WRAPPED_TOKEN_GATEWAY_ABI = [
   {
-    inputs: [],
-    name: 'requestUSDT',
+    inputs: [
+      { name: 'pool', type: 'address' },
+      { name: 'onBehalfOf', type: 'address' },
+      { name: 'referralCode', type: 'uint16' }
+    ],
+    name: 'depositETH',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'pool', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+      { name: 'to', type: 'address' }
+    ],
+    name: 'withdrawETH',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'requestWA7A5',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'requestWBTC',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: 'user', type: 'address' }, { name: 'token', type: 'address' }],
-    name: 'canRequest',
-    outputs: [{ name: '', type: 'bool' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: 'user', type: 'address' }, { name: 'token', type: 'address' }],
-    name: 'timeUntilNextRequest',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
     type: 'function',
   },
 ] as const;
@@ -338,10 +341,10 @@ export const FAUCET_ABI = [
 // Helper functions
 export function getContractConfig(chainId: number) {
   switch (chainId) {
-    case 11155111: // Sepolia
-      return NETWORK_CONFIG.SEPOLIA;
+    case 12227332: // NEO X Testnet
+      return NETWORK_CONFIG.NEOX_TESTNET;
     default:
-      throw new Error(`Unsupported network: ${chainId}`);
+      throw new Error(`Unsupported network: ${chainId}. Only NEO X Testnet (12227332) is supported.`);
   }
 }
 
@@ -359,5 +362,5 @@ export function getReserveBySymbol(symbol: string) {
 
 // Type definitions
 export type ReserveAsset = typeof RESERVE_ASSETS[keyof typeof RESERVE_ASSETS];
-export type ContractAddresses = typeof SEPOLIA_CONTRACTS;
+export type ContractAddresses = typeof NEOX_TESTNET_CONTRACTS;
 export type NetworkConfig = typeof NETWORK_CONFIG[keyof typeof NETWORK_CONFIG];
