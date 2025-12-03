@@ -53,8 +53,9 @@ function formatAssetValue(symbol: string, amount: number): { primary: string; se
   const usdValue = amount * price;
 
   if (isStablecoin(symbol)) {
+    // USDT, USDC - whole numbers
     return {
-      primary: `$${formatNumber(amount, 2)}`,
+      primary: `$${formatNumber(Math.round(amount))}`,
       secondary: ''
     };
   }
@@ -66,9 +67,16 @@ function formatAssetValue(symbol: string, amount: number): { primary: string; se
     };
   }
 
-  // WGAS, NEO, ETH - show token amount with USD equivalent
+  if (symbol === 'ETH') {
+    return {
+      primary: `${formatNumber(amount, 2)}`,
+      secondary: `≈ $${formatNumber(Math.round(usdValue))}`
+    };
+  }
+
+  // WGAS, NEO - whole numbers, no symbol
   return {
-    primary: `${formatNumber(amount, 2)} ${symbol}`,
+    primary: `${formatNumber(Math.round(amount))}`,
     secondary: `≈ $${formatNumber(Math.round(usdValue))}`
   };
 }
@@ -165,7 +173,7 @@ export function Dashboard() {
             {/* Logo - clickable */}
             <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer">
               <img src="/img/logo_3.png" alt="NeovaLend" className="h-8 sm:h-10 w-auto object-contain" />
-              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent hidden sm:inline">NeovaLend</span>
+              <span className="text-lg sm:text-xl font-bold text-white hidden sm:inline">NeovaLend</span>
             </a>
 
             {/* Desktop Links */}
