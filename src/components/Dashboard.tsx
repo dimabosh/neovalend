@@ -275,19 +275,19 @@ export function Dashboard() {
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
                 <div className="text-sm text-gray-400 mb-2">Total Deposits</div>
                 <div className="text-2xl font-bold text-white">
-                  ₽{formatNumber(Math.round(protocolStats.totalTVL * 90))}
+                  ${formatNumber(Math.round(protocolStats.totalTVL))}
                 </div>
               </div>
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
                 <div className="text-sm text-gray-400 mb-2">Total Borrows</div>
                 <div className="text-2xl font-bold text-white">
-                  ₽{formatNumber(Math.round(protocolStats.totalBorrows * 90))}
+                  ${formatNumber(Math.round(protocolStats.totalBorrows))}
                 </div>
               </div>
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
                 <div className="text-sm text-gray-400 mb-2">Available to Borrow</div>
                 <div className="text-2xl font-bold text-white">
-                  ₽{formatNumber(Math.round(protocolStats.totalAvailable * 90))}
+                  ${formatNumber(Math.round(protocolStats.totalAvailable))}
                 </div>
               </div>
             </div>
@@ -364,17 +364,17 @@ export function Dashboard() {
                             <div className="text-right sm:hidden">
                               <div className="font-medium text-white text-sm">
                                 {position.assetConfig.symbol === 'WGAS' ?
-                                  `₽${formatNumber(parseFloat(position.supplied))}` :
+                                  `$${formatNumber(parseFloat(position.supplied) * 0.01, 2)}` :
                                 position.assetConfig.symbol === 'BTC' ?
                                   `₿${formatNumber(parseFloat(position.supplied), 4)}` :
                                   `$${formatNumber(parseFloat(position.supplied))}`
                                 }
                               </div>
                               <div className="text-xs text-gray-400">
-                                {position.assetConfig.symbol === 'WGAS' ? '' :
+                                {position.assetConfig.symbol === 'WGAS' ? `${formatNumber(parseFloat(position.supplied), 2)} WGAS` :
                                 position.assetConfig.symbol === 'BTC' ?
-                                  `≈ ₽${formatNumber(parseFloat(position.supplied) * 120000 * 90)}` :
-                                  `≈ ₽${formatNumber(parseFloat(position.supplied) * 90)}`
+                                  `≈ $${formatNumber(parseFloat(position.supplied) * 120000)}` :
+                                  ''
                                 }
                               </div>
                             </div>
@@ -383,17 +383,17 @@ export function Dashboard() {
                             <div className="hidden sm:block text-right min-w-[120px]">
                               <div className="font-medium text-white">
                                 {position.assetConfig.symbol === 'WGAS' ?
-                                  `₽${formatNumber(parseFloat(position.supplied))}` :
+                                  `$${formatNumber(parseFloat(position.supplied) * 0.01, 2)}` :
                                 position.assetConfig.symbol === 'BTC' ?
                                   `₿${formatNumber(parseFloat(position.supplied), 4)}` :
                                   `$${formatNumber(parseFloat(position.supplied))}`
                                 }
                               </div>
                               <div className="text-sm text-gray-400">
-                                {position.assetConfig.symbol === 'WGAS' ? '' :
+                                {position.assetConfig.symbol === 'WGAS' ? `${formatNumber(parseFloat(position.supplied), 2)} WGAS` :
                                 position.assetConfig.symbol === 'BTC' ?
-                                  `≈ ₽${formatNumber(parseFloat(position.supplied) * 120000 * 90)}` :
-                                  `≈ ₽${formatNumber(parseFloat(position.supplied) * 90)}`
+                                  `≈ $${formatNumber(parseFloat(position.supplied) * 120000)}` :
+                                  ''
                                 }
                               </div>
                             </div>
@@ -497,17 +497,17 @@ export function Dashboard() {
                             <div className="text-right sm:hidden">
                               <div className="font-medium text-white text-sm">
                                 {position.assetConfig.symbol === 'WGAS' ?
-                                  `₽${formatNumber(parseFloat(position.borrowed))}` :
+                                  `$${formatNumber(parseFloat(position.borrowed) * 0.01, 2)}` :
                                 position.assetConfig.symbol === 'BTC' ?
                                   `₿${formatNumber(parseFloat(position.borrowed), 4)}` :
                                   `$${formatNumber(parseFloat(position.borrowed))}`
                                 }
                               </div>
                               <div className="text-xs text-gray-400">
-                                {position.assetConfig.symbol === 'WGAS' ? '' :
+                                {position.assetConfig.symbol === 'WGAS' ? `${formatNumber(parseFloat(position.borrowed), 2)} WGAS` :
                                 position.assetConfig.symbol === 'BTC' ?
-                                  `≈ ₽${formatNumber(parseFloat(position.borrowed) * 120000 * 90)}` :
-                                  `≈ ₽${formatNumber(parseFloat(position.borrowed) * 90)}`
+                                  `≈ $${formatNumber(parseFloat(position.borrowed) * 120000)}` :
+                                  ''
                                 }
                               </div>
                             </div>
@@ -516,17 +516,17 @@ export function Dashboard() {
                             <div className="hidden sm:block text-right min-w-[120px]">
                               <div className="font-medium text-white">
                                 {position.assetConfig.symbol === 'WGAS' ?
-                                  `₽${formatNumber(parseFloat(position.borrowed))}` :
+                                  `$${formatNumber(parseFloat(position.borrowed) * 0.01, 2)}` :
                                 position.assetConfig.symbol === 'BTC' ?
                                   `₿${formatNumber(parseFloat(position.borrowed), 4)}` :
                                   `$${formatNumber(parseFloat(position.borrowed))}`
                                 }
                               </div>
                               <div className="text-sm text-gray-400">
-                                {position.assetConfig.symbol === 'WGAS' ? '' :
+                                {position.assetConfig.symbol === 'WGAS' ? `${formatNumber(parseFloat(position.borrowed), 2)} WGAS` :
                                 position.assetConfig.symbol === 'BTC' ?
-                                  `≈ ₽${formatNumber(parseFloat(position.borrowed) * 120000 * 90)}` :
-                                  `≈ ₽${formatNumber(parseFloat(position.borrowed) * 90)}`
+                                  `≈ $${formatNumber(parseFloat(position.borrowed) * 120000)}` :
+                                  ''
                                 }
                               </div>
                             </div>
@@ -713,15 +713,15 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
         <div className="text-white text-xs sm:text-sm whitespace-nowrap">
           {assetStats ? (
             reserve.symbol === 'WGAS' ?
-              `₽${formatNumber(Math.round(assetStats.supplyAmount))}` :
+              `$${formatNumber(assetStats.supplyUSD, 2)}` :
             reserve.symbol === 'BTC' ?
               `₿${formatNumber(assetStats.supplyAmount, 4)}` :
               `$${formatNumber(Math.round(assetStats.supplyAmount))}`
           ) : '0'}
         </div>
-        {assetStats && assetStats.supplyAmount > 0 && reserve.symbol !== 'WGAS' && (
+        {assetStats && assetStats.supplyAmount > 0 && reserve.symbol === 'BTC' && (
           <div className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
-            ≈ ₽{formatNumber(Math.round(assetStats.supplyUSD * 90))}
+            ≈ ${formatNumber(Math.round(assetStats.supplyUSD))}
           </div>
         )}
       </td>
@@ -730,15 +730,15 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
         <div className="text-white text-xs sm:text-sm whitespace-nowrap">
           {assetStats ? (
             reserve.symbol === 'WGAS' ?
-              `₽${formatNumber(Math.round(assetStats.debtAmount))}` :
+              `$${formatNumber(assetStats.debtUSD, 2)}` :
             reserve.symbol === 'BTC' ?
               `₿${formatNumber(assetStats.debtAmount, 4)}` :
               `$${formatNumber(Math.round(assetStats.debtAmount))}`
           ) : '0'}
         </div>
-        {assetStats && assetStats.debtAmount > 0 && reserve.symbol !== 'WGAS' && (
+        {assetStats && assetStats.debtAmount > 0 && reserve.symbol === 'BTC' && (
           <div className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
-            ≈ ₽{formatNumber(Math.round(assetStats.debtUSD * 90))}
+            ≈ ${formatNumber(Math.round(assetStats.debtUSD))}
           </div>
         )}
       </td>
