@@ -62,9 +62,9 @@ export function RepayDialog({
 
   // Calculate new Health Factor after repay
   const repayAmountInput = parseFloat(amount || '0');
-  const repayAmountInUSD = symbol === 'wA7A5'
+  const repayAmountInUSD = symbol === 'WGAS'
     ? repayAmountInput * 0.0111
-    : symbol === 'WBTC'
+    : symbol === 'BTC'
     ? repayAmountInput * 120000 // WBTC price: $120,000
     : repayAmountInput; // USDT = $1
 

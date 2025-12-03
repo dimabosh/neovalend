@@ -41,8 +41,8 @@ export function Dashboard() {
 
   // Get reserve data for all assets upfront (before any conditional rendering)
   const usdtReserveData = useReserveData(RESERVE_ASSETS.USDT.address as Address);
-  const wbtcReserveData = useReserveData(RESERVE_ASSETS.WBTC.address as Address);
-  const wa7a5ReserveData = useReserveData(RESERVE_ASSETS.wA7A5.address as Address);
+  const btcReserveData = useReserveData(RESERVE_ASSETS.BTC.address as Address);
+  const wgasReserveData = useReserveData(RESERVE_ASSETS.WGAS.address as Address);
 
   // Debug: log account data when it changes
   if (accountData && !(window as any).lastAccountDataLog) {
@@ -307,12 +307,12 @@ export function Dashboard() {
                   ) : (
                     <div className="space-y-3 overflow-visible">
                       {activeSuppliedPositions
-                        .sort((a, b) => a.assetConfig.symbol === 'wA7A5' ? -1 : 1)
+                        .sort((a, b) => a.assetConfig.symbol === 'WGAS' ? -1 : 1)
                         .map((position) => {
                           // Get reserve data for this position (no hooks in map!)
                           const reserveData = position.asset === 'USDT' ? usdtReserveData :
-                                            position.asset === 'WBTC' ? wbtcReserveData :
-                                            wa7a5ReserveData;
+                                            position.asset === 'BTC' ? btcReserveData :
+                                            wgasReserveData;
 
                           return (
                         <div key={position.asset} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-slate-700/30 rounded-lg gap-3">
@@ -321,7 +321,7 @@ export function Dashboard() {
                               <img
                                 src={
                                   position.assetConfig.symbol === 'USDT' ? '/img/usdt.png' :
-                                  position.assetConfig.symbol === 'WBTC' ? '/img/wbtc.svg' :
+                                  position.assetConfig.symbol === 'BTC' ? '/img/wbtc.svg' :
                                   '/img/a7a5.png'
                                 }
                                 alt={position.assetConfig.symbol}
@@ -362,16 +362,16 @@ export function Dashboard() {
                             </div>
                             <div className="text-right sm:hidden">
                               <div className="font-medium text-white text-sm">
-                                {position.assetConfig.symbol === 'wA7A5' ?
+                                {position.assetConfig.symbol === 'WGAS' ?
                                   `₽${formatNumber(parseFloat(position.supplied))}` :
-                                position.assetConfig.symbol === 'WBTC' ?
+                                position.assetConfig.symbol === 'BTC' ?
                                   `₿${formatNumber(parseFloat(position.supplied), 4)}` :
                                   `$${formatNumber(parseFloat(position.supplied))}`
                                 }
                               </div>
                               <div className="text-xs text-gray-400">
-                                {position.assetConfig.symbol === 'wA7A5' ? '' :
-                                position.assetConfig.symbol === 'WBTC' ?
+                                {position.assetConfig.symbol === 'WGAS' ? '' :
+                                position.assetConfig.symbol === 'BTC' ?
                                   `≈ ₽${formatNumber(parseFloat(position.supplied) * 120000 * 90)}` :
                                   `≈ ₽${formatNumber(parseFloat(position.supplied) * 90)}`
                                 }
@@ -381,16 +381,16 @@ export function Dashboard() {
                           <div className="flex items-center justify-between sm:justify-end sm:space-x-6">
                             <div className="hidden sm:block text-right min-w-[120px]">
                               <div className="font-medium text-white">
-                                {position.assetConfig.symbol === 'wA7A5' ?
+                                {position.assetConfig.symbol === 'WGAS' ?
                                   `₽${formatNumber(parseFloat(position.supplied))}` :
-                                position.assetConfig.symbol === 'WBTC' ?
+                                position.assetConfig.symbol === 'BTC' ?
                                   `₿${formatNumber(parseFloat(position.supplied), 4)}` :
                                   `$${formatNumber(parseFloat(position.supplied))}`
                                 }
                               </div>
                               <div className="text-sm text-gray-400">
-                                {position.assetConfig.symbol === 'wA7A5' ? '' :
-                                position.assetConfig.symbol === 'WBTC' ?
+                                {position.assetConfig.symbol === 'WGAS' ? '' :
+                                position.assetConfig.symbol === 'BTC' ?
                                   `≈ ₽${formatNumber(parseFloat(position.supplied) * 120000 * 90)}` :
                                   `≈ ₽${formatNumber(parseFloat(position.supplied) * 90)}`
                                 }
@@ -456,12 +456,12 @@ export function Dashboard() {
                   ) : (
                     <div className="space-y-3 overflow-visible">
                       {activeBorrowedPositions
-                        .sort((a, b) => a.assetConfig.symbol === 'wA7A5' ? -1 : 1)
+                        .sort((a, b) => a.assetConfig.symbol === 'WGAS' ? -1 : 1)
                         .map((position) => {
                           // Get reserve data for this position (no hooks in map!)
                           const reserveData = position.asset === 'USDT' ? usdtReserveData :
-                                            position.asset === 'WBTC' ? wbtcReserveData :
-                                            wa7a5ReserveData;
+                                            position.asset === 'BTC' ? btcReserveData :
+                                            wgasReserveData;
 
                           return (
                         <div key={position.asset} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-slate-700/30 rounded-lg gap-3">
@@ -470,7 +470,7 @@ export function Dashboard() {
                               <img
                                 src={
                                   position.assetConfig.symbol === 'USDT' ? '/img/usdt.png' :
-                                  position.assetConfig.symbol === 'WBTC' ? '/img/wbtc.svg' :
+                                  position.assetConfig.symbol === 'BTC' ? '/img/wbtc.svg' :
                                   '/img/a7a5.png'
                                 }
                                 alt={position.assetConfig.symbol}
@@ -495,16 +495,16 @@ export function Dashboard() {
                             </div>
                             <div className="text-right sm:hidden">
                               <div className="font-medium text-white text-sm">
-                                {position.assetConfig.symbol === 'wA7A5' ?
+                                {position.assetConfig.symbol === 'WGAS' ?
                                   `₽${formatNumber(parseFloat(position.borrowed))}` :
-                                position.assetConfig.symbol === 'WBTC' ?
+                                position.assetConfig.symbol === 'BTC' ?
                                   `₿${formatNumber(parseFloat(position.borrowed), 4)}` :
                                   `$${formatNumber(parseFloat(position.borrowed))}`
                                 }
                               </div>
                               <div className="text-xs text-gray-400">
-                                {position.assetConfig.symbol === 'wA7A5' ? '' :
-                                position.assetConfig.symbol === 'WBTC' ?
+                                {position.assetConfig.symbol === 'WGAS' ? '' :
+                                position.assetConfig.symbol === 'BTC' ?
                                   `≈ ₽${formatNumber(parseFloat(position.borrowed) * 120000 * 90)}` :
                                   `≈ ₽${formatNumber(parseFloat(position.borrowed) * 90)}`
                                 }
@@ -514,16 +514,16 @@ export function Dashboard() {
                           <div className="flex items-center justify-between sm:justify-end sm:space-x-6">
                             <div className="hidden sm:block text-right min-w-[120px]">
                               <div className="font-medium text-white">
-                                {position.assetConfig.symbol === 'wA7A5' ?
+                                {position.assetConfig.symbol === 'WGAS' ?
                                   `₽${formatNumber(parseFloat(position.borrowed))}` :
-                                position.assetConfig.symbol === 'WBTC' ?
+                                position.assetConfig.symbol === 'BTC' ?
                                   `₿${formatNumber(parseFloat(position.borrowed), 4)}` :
                                   `$${formatNumber(parseFloat(position.borrowed))}`
                                 }
                               </div>
                               <div className="text-sm text-gray-400">
-                                {position.assetConfig.symbol === 'wA7A5' ? '' :
-                                position.assetConfig.symbol === 'WBTC' ?
+                                {position.assetConfig.symbol === 'WGAS' ? '' :
+                                position.assetConfig.symbol === 'BTC' ?
                                   `≈ ₽${formatNumber(parseFloat(position.borrowed) * 120000 * 90)}` :
                                   `≈ ₽${formatNumber(parseFloat(position.borrowed) * 90)}`
                                 }
@@ -696,7 +696,7 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
           <img
             src={
               reserve.symbol === 'USDT' ? '/img/usdt.png' :
-              reserve.symbol === 'WBTC' ? '/img/wbtc.svg' :
+              reserve.symbol === 'BTC' ? '/img/wbtc.svg' :
               '/img/a7a5.png'
             }
             alt={reserve.symbol}
@@ -711,14 +711,14 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
       <td className="py-3 px-3 sm:py-4 sm:px-6">
         <div className="text-white text-xs sm:text-sm whitespace-nowrap">
           {assetStats ? (
-            reserve.symbol === 'wA7A5' ?
+            reserve.symbol === 'WGAS' ?
               `₽${formatNumber(Math.round(assetStats.supplyAmount))}` :
-            reserve.symbol === 'WBTC' ?
+            reserve.symbol === 'BTC' ?
               `₿${formatNumber(assetStats.supplyAmount, 4)}` :
               `$${formatNumber(Math.round(assetStats.supplyAmount))}`
           ) : '0'}
         </div>
-        {assetStats && assetStats.supplyAmount > 0 && reserve.symbol !== 'wA7A5' && (
+        {assetStats && assetStats.supplyAmount > 0 && reserve.symbol !== 'WGAS' && (
           <div className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
             ≈ ₽{formatNumber(Math.round(assetStats.supplyUSD * 90))}
           </div>
@@ -728,14 +728,14 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
       <td className="py-3 px-3 sm:py-4 sm:px-6">
         <div className="text-white text-xs sm:text-sm whitespace-nowrap">
           {assetStats ? (
-            reserve.symbol === 'wA7A5' ?
+            reserve.symbol === 'WGAS' ?
               `₽${formatNumber(Math.round(assetStats.debtAmount))}` :
-            reserve.symbol === 'WBTC' ?
+            reserve.symbol === 'BTC' ?
               `₿${formatNumber(assetStats.debtAmount, 4)}` :
               `$${formatNumber(Math.round(assetStats.debtAmount))}`
           ) : '0'}
         </div>
-        {assetStats && assetStats.debtAmount > 0 && reserve.symbol !== 'wA7A5' && (
+        {assetStats && assetStats.debtAmount > 0 && reserve.symbol !== 'WGAS' && (
           <div className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
             ≈ ₽{formatNumber(Math.round(assetStats.debtUSD * 90))}
           </div>

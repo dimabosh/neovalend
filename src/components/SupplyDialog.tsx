@@ -106,9 +106,9 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
   // For collateral toggle - show even for dust amounts
   // For display purposes - use meaningful balance check
   const aTokenBalanceNum = parseFloat(aTokenBalance);
-  const minMeaningfulBalance = symbol === 'wA7A5'
+  const minMeaningfulBalance = symbol === 'WGAS'
     ? 0.9 // ~$0.01 USD (1 A7A5 = $0.0111)
-    : symbol === 'WBTC'
+    : symbol === 'BTC'
     ? 0.00000008 // ~$0.01 USD (1 BTC = $120,000)
     : 0.01; // $0.01 USD for USDT
 
@@ -123,9 +123,9 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
 
   // Calculate new Health Factor after supply
   const supplyAmountInput = parseFloat(amount || '0');
-  const supplyAmountInUSD = symbol === 'wA7A5'
+  const supplyAmountInUSD = symbol === 'WGAS'
     ? supplyAmountInput * 0.0111
-    : symbol === 'WBTC'
+    : symbol === 'BTC'
     ? supplyAmountInput * 120000 // WBTC price: $120,000
     : supplyAmountInput; // USDT = $1
 

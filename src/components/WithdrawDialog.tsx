@@ -51,9 +51,9 @@ export function WithdrawDialog({
 
   // Calculate new Health Factor after withdraw
   const withdrawAmountInput = parseFloat(amount || '0');
-  const withdrawAmountInUSD = symbol === 'wA7A5'
+  const withdrawAmountInUSD = symbol === 'WGAS'
     ? withdrawAmountInput * 0.0111
-    : symbol === 'WBTC'
+    : symbol === 'BTC'
     ? withdrawAmountInput * 120000 // WBTC price: $120,000
     : withdrawAmountInput; // USDT = $1
 

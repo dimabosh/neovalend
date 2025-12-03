@@ -302,9 +302,9 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
                 <div className="flex justify-between mb-2">
                   <span>Доступно для займа:</span>
                   <span className="font-medium">
-                    {symbol === 'wA7A5' ?
+                    {symbol === 'WGAS' ?
                       `₽${formatNumber(Math.round(availableToBorrowUSD * 90))}` :
-                      symbol === 'WBTC' ?
+                      symbol === 'BTC' ?
                       `${formatNumber(availableToBorrowUSD / assetPriceUSD, 4)} BTC ($${formatNumber(Math.round(availableToBorrowUSD))})` :
                       `$${formatNumber(Math.round(availableToBorrowUSD))}`
                     }
