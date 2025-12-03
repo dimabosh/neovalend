@@ -186,7 +186,7 @@ export default function FaucetPage() {
   const { address: userAddress, isConnected } = useAccount();
 
   const faucetAddress = SIMPLE_FAUCET_ADDRESS as Address;
-  const isFaucetDeployed = faucetAddress && faucetAddress !== '';
+  const isFaucetDeployed = Boolean(faucetAddress && faucetAddress.length > 2);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-x-hidden">

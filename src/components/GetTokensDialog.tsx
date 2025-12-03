@@ -36,7 +36,7 @@ export function GetTokensDialog({ open, onOpenChange, asset }: GetTokensDialogPr
   const tokenAddress = reserve?.address as Address;
   const decimals = reserve?.decimals || 18;
   const faucetAddress = SIMPLE_FAUCET_ADDRESS as Address;
-  const isFaucetDeployed = faucetAddress && faucetAddress !== '';
+  const isFaucetDeployed = Boolean(faucetAddress && faucetAddress.length > 2);
 
   // Check if user can claim
   const { data: canClaimData, refetch: refetchCanClaim } = useReadContract({
