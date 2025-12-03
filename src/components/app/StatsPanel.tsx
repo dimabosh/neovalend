@@ -78,26 +78,26 @@ export default function StatsPanel() {
     <div className="space-y-6">
       {/* Protocol Stats */}
       <div className="card-dark p-6 rounded-xl">
-        <h2 className="text-xl font-semibold text-white mb-4">Статистика Протокола</h2>
-        
+        <h2 className="text-xl font-semibold text-white mb-4">Protocol Statistics</h2>
+
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="text-gray-400">TVL:</span>
             <span className="text-blue-400 font-semibold text-lg">${protocolStats.tvl}</span>
           </div>
-          
+
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Пользователей:</span>
+            <span className="text-gray-400">Users:</span>
             <span className="text-green-400 font-semibold">{protocolStats.totalUsers}</span>
           </div>
-          
+
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Общие Депозиты:</span>
+            <span className="text-gray-400">Total Deposits:</span>
             <span className="text-purple-400 font-semibold">${protocolStats.totalDeposits}</span>
           </div>
-          
+
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Общие Займы:</span>
+            <span className="text-gray-400">Total Borrows:</span>
             <span className="text-yellow-400 font-semibold">${protocolStats.totalBorrows}</span>
           </div>
         </div>
@@ -105,7 +105,7 @@ export default function StatsPanel() {
 
       {/* Interest Rates */}
       <div className="card-dark p-6 rounded-xl">
-        <h2 className="text-xl font-semibold text-white mb-4">Процентные Ставки</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">Interest Rates</h2>
         
         <div className="space-y-4">
           <div className="flex justify-between items-center">
@@ -115,7 +115,7 @@ export default function StatsPanel() {
             </div>
             <div className="text-right">
               <div className="text-green-400 font-semibold">{protocolStats.usdtAPY}%</div>
-              <div className="text-xs text-gray-400">Депозит APY</div>
+              <div className="text-xs text-gray-400">Deposit APY</div>
             </div>
           </div>
           
@@ -126,20 +126,20 @@ export default function StatsPanel() {
             </div>
             <div className="text-right">
               <div className="text-blue-400 font-semibold">{protocolStats.a7a5APY}%</div>
-              <div className="text-xs text-gray-400">Депозит APY</div>
+              <div className="text-xs text-gray-400">Deposit APY</div>
             </div>
           </div>
           
           <div className="bg-gray-800 p-3 rounded-lg">
             <div className="text-xs text-gray-400 mb-1">Rebase Bonus A7A5:</div>
-            <div className="text-purple-400 font-semibold">+7-8% годовых</div>
+            <div className="text-purple-400 font-semibold">+7-8% annual</div>
           </div>
         </div>
       </div>
 
       {/* Top Users Leaderboard */}
       <div className="card-dark p-6 rounded-xl">
-        <h2 className="text-xl font-semibold text-white mb-4">🏆 Топ Пользователей</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">Top Users</h2>
         
         <div className="space-y-3">
           {topUsers.length > 0 ? (
@@ -160,7 +160,7 @@ export default function StatsPanel() {
             ))
           ) : (
             <div className="text-center text-gray-400 py-4">
-              Пока нет активных пользователей
+              No active users yet
             </div>
           )}
         </div>
@@ -168,33 +168,33 @@ export default function StatsPanel() {
 
       {/* Recent Activity */}
       <div className="card-dark p-6 rounded-xl">
-        <h2 className="text-xl font-semibold text-white mb-4">📊 Последняя Активность</h2>
-        
+        <h2 className="text-xl font-semibold text-white mb-4">Recent Activity</h2>
+
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
             <div className="flex items-center space-x-3">
               <span className="text-blue-500">💰</span>
               <div>
-                <div className="text-white text-sm">Депозит USDT</div>
-                <div className="text-xs text-gray-400">2 минуты назад</div>
+                <div className="text-white text-sm">Deposit USDT</div>
+                <div className="text-xs text-gray-400">2 minutes ago</div>
               </div>
             </div>
             <span className="text-green-400">+$100</span>
           </div>
-          
+
           <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
             <div className="flex items-center space-x-3">
               <span className="text-green-500">📊</span>
               <div>
-                <div className="text-white text-sm">Заём A7A5</div>
-                <div className="text-xs text-gray-400">5 минут назад</div>
+                <div className="text-white text-sm">Borrow A7A5</div>
+                <div className="text-xs text-gray-400">5 minutes ago</div>
               </div>
             </div>
             <span className="text-yellow-400">$50</span>
           </div>
-          
+
           <div className="text-center text-gray-400 text-xs mt-4">
-            Демо режим - реальные транзакции скоро
+            Demo mode - real transactions coming soon
           </div>
         </div>
       </div>

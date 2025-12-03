@@ -51,9 +51,9 @@ export default function ProtocolOverview() {
           </svg>
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-white">Протокол кредитования</h1>
+          <h1 className="text-2xl font-bold text-white">Lending Protocol</h1>
           <p className="text-gray-400">
-            Поддержка A7A5 и USDT токенов
+            Support for A7A5 and USDT tokens
           </p>
         </div>
       </div>
@@ -61,15 +61,15 @@ export default function ProtocolOverview() {
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
         <div>
-          <div className="text-sm text-gray-400 mb-1">Общий размер рынка</div>
+          <div className="text-sm text-gray-400 mb-1">Total Market Size</div>
           <div className="text-3xl font-bold text-white">{stats.totalMarketSize}</div>
         </div>
         <div>
-          <div className="text-sm text-gray-400 mb-1">Всего доступно</div>
+          <div className="text-sm text-gray-400 mb-1">Total Available</div>
           <div className="text-3xl font-bold text-white">{stats.totalAvailable}</div>
         </div>
         <div>
-          <div className="text-sm text-gray-400 mb-1">Общий займы</div>
+          <div className="text-sm text-gray-400 mb-1">Total Borrows</div>
           <div className="text-3xl font-bold text-white">{stats.totalBorrows}</div>
         </div>
       </div>

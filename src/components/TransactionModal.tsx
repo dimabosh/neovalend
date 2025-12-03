@@ -31,30 +31,30 @@ export function TransactionModal({
   const getActionText = () => {
     switch (action) {
       case 'supply':
-        return 'пополнили';
+        return 'deposited';
       case 'borrow':
-        return 'взяли займ';
+        return 'borrowed';
       case 'repay':
-        return 'погасили займ';
+        return 'repaid';
       case 'approve':
-        return 'подтвердили';
+        return 'approved';
       case 'faucet':
-        return 'получили';
+        return 'received';
       case 'enable-collateral':
-        return 'включили залог';
+        return 'enabled collateral for';
       case 'disable-collateral':
-        return 'выключили залог';
+        return 'disabled collateral for';
     }
   };
 
   const getTitle = () => {
     switch (status) {
       case 'pending':
-        return 'Выполняем транзакцию';
+        return 'Processing Transaction';
       case 'success':
-        return 'Успешно!';
+        return 'Success!';
       case 'error':
-        return 'Ошибка';
+        return 'Error';
     }
   };
 
@@ -93,7 +93,7 @@ export function TransactionModal({
           {step && stepDescription && status === 'pending' && (
             <div className="text-center mb-2 sm:mb-4">
               <div className="inline-block bg-blue-500/20 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg">
-                <span className="text-blue-400 font-semibold text-sm sm:text-base">Шаг {step}</span>
+                <span className="text-blue-400 font-semibold text-sm sm:text-base">Step {step}</span>
                 <span className="text-gray-300 ml-1 sm:ml-2 text-sm sm:text-base">• {stepDescription}</span>
               </div>
             </div>
@@ -104,10 +104,10 @@ export function TransactionModal({
             {status === 'pending' && (
               <>
                 <p className="text-gray-300 text-sm sm:text-base">
-                  Подтвердите операцию в вашем кошельке
+                  Confirm the operation in your wallet
                 </p>
                 <p className="text-xs sm:text-sm text-gray-400">
-                  В ожидании подтверждения транзакции...
+                  Waiting for transaction confirmation...
                 </p>
               </>
             )}
@@ -120,7 +120,7 @@ export function TransactionModal({
                 ) : (
                   <>
                     <p className="text-gray-300 text-base sm:text-lg">
-                      Вы {getActionText()}
+                      You {getActionText()}
                     </p>
                     {(action === 'enable-collateral' || action === 'disable-collateral') && symbol ? (
                       <p className="text-xl sm:text-2xl font-bold text-white">
@@ -137,7 +137,7 @@ export function TransactionModal({
             )}
             {status === 'error' && (
               <p className="text-gray-300 text-sm sm:text-base">
-                Транзакция отклонена или произошла ошибка
+                Transaction rejected or an error occurred
               </p>
             )}
           </div>
@@ -151,7 +151,7 @@ export function TransactionModal({
                 rel="noopener noreferrer"
                 className="block w-full text-center text-blue-400 hover:text-blue-300 underline text-sm"
               >
-                Посмотреть транзакцию в Etherscan →
+                View transaction on Etherscan
               </a>
             </div>
           )} */}
@@ -163,7 +163,7 @@ export function TransactionModal({
               className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
               size="lg"
             >
-              Закрыть
+              Close
             </Button>
           )}
         </div>

@@ -38,7 +38,7 @@ export default function TokenTable() {
     {
       symbol: 'A7A5',
       name: 'A7A5 Token',
-      icon: '/img/a7a5.png',
+      icon: '/img/gas.png',
       totalSupplied: '1.2M',
       totalSuppliedUSD: '₽240M',
       supplyAPY: '10.5%',
@@ -86,7 +86,7 @@ export default function TokenTable() {
     <div className="max-w-7xl mx-auto px-6 pb-8">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-white">Активы протокола</h2>
+        <h2 className="text-2xl font-semibold text-white">Protocol Assets</h2>
       </div>
 
       {/* Table */}
@@ -96,22 +96,22 @@ export default function TokenTable() {
             <thead className="bg-gray-800/50">
               <tr>
                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-400">
-                  Токен
+                  Token
                 </th>
                 <th className="text-right py-4 px-6 text-sm font-medium text-gray-400">
-                  Всего предоставлено
+                  Total Supplied
                 </th>
                 <th className="text-right py-4 px-6 text-sm font-medium text-gray-400">
-                  APY депозита
+                  Deposit APY
                 </th>
                 <th className="text-right py-4 px-6 text-sm font-medium text-gray-400">
-                  Всего займов
+                  Total Borrowed
                 </th>
                 <th className="text-right py-4 px-6 text-sm font-medium text-gray-400">
-                  APY займа
+                  Borrow APY
                 </th>
                 <th className="text-right py-4 px-6 text-sm font-medium text-gray-400">
-                  Действия
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -170,12 +170,12 @@ export default function TokenTable() {
                         <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-900 border border-gray-700 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
                           <div className="text-xs text-white">
                             <div className="font-medium mb-1 text-white">
-                              Депозит A7A5:
+                              Deposit A7A5:
                             </div>
                             <div className="space-y-0.5">
-                              <div className="text-white">Ставка: +7%</div>
-                              <div className="text-yellow-500">Возврат ребейза: +3.5%</div>
-                              <div className="text-white font-medium mt-1 pt-1 border-t border-gray-700">Итого: 10.5%</div>
+                              <div className="text-white">Rate: +7%</div>
+                              <div className="text-yellow-500">Rebase return: +3.5%</div>
+                              <div className="text-white font-medium mt-1 pt-1 border-t border-gray-700">Total: 10.5%</div>
                             </div>
                           </div>
                         </div>
@@ -199,12 +199,12 @@ export default function TokenTable() {
                         <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-900 border border-gray-700 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
                           <div className="text-xs text-white">
                             <div className="font-medium mb-1 text-white">
-                              Займ A7A5:
+                              Borrow A7A5:
                             </div>
                             <div className="space-y-0.5">
-                              <div className="text-white">Ставка: +9%</div>
-                              <div className="text-red-400">Возврат ребейза: +3.5%</div>
-                              <div className="text-white font-medium mt-1 pt-1 border-t border-gray-700">Итого: 12.5%</div>
+                              <div className="text-white">Rate: +9%</div>
+                              <div className="text-red-400">Rebase return: +3.5%</div>
+                              <div className="text-white font-medium mt-1 pt-1 border-t border-gray-700">Total: 12.5%</div>
                             </div>
                           </div>
                         </div>
@@ -222,7 +222,7 @@ export default function TokenTable() {
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                         </svg>
-                        Депозит
+                        Deposit
                       </button>
                       <button 
                         onClick={() => openBorrowModal(token)}
@@ -231,16 +231,16 @@ export default function TokenTable() {
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
                         </svg>
-                        Займ
+                        Borrow
                       </button>
                       <button 
-                        onClick={() => alert('Обмен скоро будет доступен')}
+                        onClick={() => alert('Swap coming soon')}
                         className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
                       >
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
                         </svg>
-                        Обмен
+                        Swap
                       </button>
                     </div>
                   </td>
@@ -254,7 +254,7 @@ export default function TokenTable() {
       {filteredTokens.length === 0 && (
         <div className="text-center py-12 text-gray-400">
           <div className="text-4xl mb-4">🔍</div>
-          <div>Токены не найдены</div>
+          <div>No tokens found</div>
         </div>
       )}
 

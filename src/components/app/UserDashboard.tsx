@@ -71,21 +71,21 @@ export default function UserDashboard() {
     <div className="space-y-6">
       {/* Account Overview */}
       <div className="card-dark p-6 rounded-xl">
-        <h2 className="text-xl font-semibold text-white mb-4">Обзор Счёта</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">Account Overview</h2>
         
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Общие Депозиты:</span>
+            <span className="text-gray-400">Total Deposits:</span>
             <span className="text-white font-semibold">${userStats.totalDeposits}</span>
           </div>
           
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Общие Займы:</span>
+            <span className="text-gray-400">Total Borrows:</span>
             <span className="text-white font-semibold">${userStats.totalBorrows}</span>
           </div>
           
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Доступно для Займа:</span>
+            <span className="text-gray-400">Available to Borrow:</span>
             <span className="text-green-400 font-semibold">${userStats.availableBorrow}</span>
           </div>
           
@@ -106,21 +106,21 @@ export default function UserDashboard() {
 
       {/* Points & Rewards */}
       <div className="card-dark p-6 rounded-xl">
-        <h2 className="text-xl font-semibold text-white mb-4">Поинты & Награды</h2>
-        
+        <h2 className="text-xl font-semibold text-white mb-4">Points & Rewards</h2>
+
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-gray-400">Общие Поинты:</span>
+            <span className="text-gray-400">Total Points:</span>
             <span className="text-purple-400 font-semibold text-xl">{formatNumber(userStats.totalPoints)}</span>
           </div>
           
           <div className="bg-gray-800 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-300 mb-2">Как заработать поинты:</h3>
+            <h3 className="text-sm font-medium text-gray-300 mb-2">How to earn points:</h3>
             <ul className="text-xs text-gray-400 space-y-1">
-              <li>• Депозиты: +10 поинтов за $1</li>
-              <li>• Займы: +5 поинтов за $1</li>
-              <li>• Свапы: +2 поинта за операцию</li>
-              <li>• Рефералы: +20% от поинтов друзей</li>
+              <li>• Deposits: +10 points per $1</li>
+              <li>• Borrows: +5 points per $1</li>
+              <li>• Swaps: +2 points per transaction</li>
+              <li>• Referrals: +20% of friends' points</li>
             </ul>
           </div>
         </div>
@@ -128,17 +128,17 @@ export default function UserDashboard() {
 
       {/* Quick Actions */}
       <div className="card-dark p-6 rounded-xl">
-        <h2 className="text-xl font-semibold text-white mb-4">Быстрые Действия</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
         
         <div className="space-y-3">
           <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors">
-            💰 Внести Депозит
+            💰 Make Deposit
           </button>
           <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition-colors">
-            📊 Взять Заём
+            📊 Take Loan
           </button>
           <button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-colors">
-            🔄 Обменять Токены
+            🔄 Swap Tokens
           </button>
         </div>
       </div>

@@ -24,23 +24,23 @@ export default function PointsPage() {
               <Link
                 href="/"
                 className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors text-sm"
-                title="Главная"
+                title="Home"
               >
                 <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span className="hidden md:inline">Главная</span>
+                <span className="hidden md:inline">Home</span>
               </Link>
 
               <Link
                 href="/faucet"
                 className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors text-sm"
-                title="Получить токены"
+                title="Get Tokens"
               >
                 <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="hidden md:inline">Получить токены</span>
+                <span className="hidden md:inline">Get Tokens</span>
               </Link>
 
               <a
@@ -48,12 +48,12 @@ export default function PointsPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors text-sm"
-                title="Документация"
+                title="Documentation"
               >
                 <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
-                <span className="hidden md:inline">Документация</span>
+                <span className="hidden md:inline">Documentation</span>
               </a>
             </div>
 
@@ -62,7 +62,7 @@ export default function PointsPage() {
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="sm:hidden p-2 text-gray-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-                aria-label="Меню"
+                aria-label="Menu"
               >
                 {isMobileMenuOpen ? (
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@ export default function PointsPage() {
               <a
                 href="/points"
                 className="flex items-center justify-center p-1.5 sm:p-2 rounded-lg bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border border-yellow-400/30 hover:border-yellow-400/50 transition-colors"
-                title="Поинты"
+                title="Points"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -100,7 +100,7 @@ export default function PointsPage() {
                         onClick={openConnectModal}
                         className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
                       >
-                        Подключить кошелек
+                        Connect Wallet
                       </Button>
                     )
                   }
@@ -165,7 +165,7 @@ export default function PointsPage() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
-                  <span>Главная</span>
+                  <span>Home</span>
                 </Link>
                 <Link
                   href="/faucet"
@@ -175,7 +175,7 @@ export default function PointsPage() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>Получить токены</span>
+                  <span>Get Tokens</span>
                 </Link>
                 <a
                   href="https://docs.neovalend.finance"
@@ -187,7 +187,7 @@ export default function PointsPage() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  <span>Документация</span>
+                  <span>Documentation</span>
                 </a>
               </div>
             </div>
@@ -205,15 +205,15 @@ export default function PointsPage() {
             </svg>
           </div>
 
-          <h1 className="text-4xl font-bold text-white mb-4">Поинты</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Points</h1>
           <p className="text-gray-300 text-lg mb-8">
-            Получайте поинты за активность на платформе
+            Earn points for your activity on the platform
           </p>
         </div>
 
         {/* Info Card */}
         <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-8">
-          <h2 className="text-2xl font-semibold text-white mb-6">Как получить?</h2>
+          <h2 className="text-2xl font-semibold text-white mb-6">How to earn?</h2>
 
           <div className="space-y-4">
             <div className="flex items-start space-x-4">
@@ -223,8 +223,8 @@ export default function PointsPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white mb-1">Делайте депозиты</h3>
-                <p className="text-gray-400">Пополняйте ликвидность протокола и зарабатывайте поинты</p>
+                <h3 className="text-lg font-semibold text-white mb-1">Make deposits</h3>
+                <p className="text-gray-400">Add liquidity to the protocol and earn points</p>
               </div>
             </div>
 
@@ -235,8 +235,8 @@ export default function PointsPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white mb-1">Берите займы</h3>
-                <p className="text-gray-400">Используйте протокол для займов под залог</p>
+                <h3 className="text-lg font-semibold text-white mb-1">Take loans</h3>
+                <p className="text-gray-400">Use the protocol for collateralized loans</p>
               </div>
             </div>
 
@@ -247,8 +247,8 @@ export default function PointsPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white mb-1">Активность в соц. сетях</h3>
-                <p className="text-gray-400">Рассказывайте о нас в соц. сетях</p>
+                <h3 className="text-lg font-semibold text-white mb-1">Social media activity</h3>
+                <p className="text-gray-400">Share about us on social media</p>
               </div>
             </div>
           </div>

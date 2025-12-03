@@ -292,7 +292,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
 
     // Only allow enabling collateral, not disabling
     if (isUsingAsCollateral) {
-      alert('ℹ️ Выключение залога временно недоступно\n\nВы можете только включать активы в качестве залога.');
+      alert('ℹ️ Disabling collateral is temporarily unavailable\n\nYou can only enable assets as collateral.');
       return;
     }
 
@@ -383,7 +383,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
               setCollateralTxStatus('error');
               setIsTogglingCollateral(false);
               setCleanupStep('idle');
-              alert(`⚠️ Недостаточно ${symbol} для погашения долга\n\nТребуется: ${formatUnits(repayAmount, assetConfig.decimals)} ${symbol}\nВаш баланс: ${formatUnits(tokenBalance, assetConfig.decimals)} ${symbol}\n\nПополните баланс и попробуйте снова.`);
+              alert(`⚠️ Insufficient ${symbol} for debt repayment\n\nRequired: ${formatUnits(repayAmount, assetConfig.decimals)} ${symbol}\nYour balance: ${formatUnits(tokenBalance, assetConfig.decimals)} ${symbol}\n\nTop up your balance and try again.`);
               return;
             }
 
@@ -440,11 +440,11 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
 
             // Show alert explaining the situation
             const shouldProceed = confirm(
-              `⚠️ Обнаружен технический флаг для ${symbol}\n\n` +
-              `Это происходит когда вы ранее брали займ и полностью погасили его.\n\n` +
-              `Для активации залога нужно сделать пополнение любой суммы.\n` +
-              `После пополнения залог активируется автоматически.\n\n` +
-              `Открыть диалог пополнения?`
+              `⚠️ Technical flag detected for ${symbol}\n\n` +
+              `This happens when you previously borrowed and fully repaid.\n\n` +
+              `To enable collateral, you need to make a deposit of any amount.\n` +
+              `After the deposit, collateral will be enabled automatically.\n\n` +
+              `Open deposit dialog?`
             );
 
             if (shouldProceed) {
@@ -549,13 +549,13 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-slate-900 border-slate-700 text-white">
         <DialogHeader>
-          <DialogTitle className="text-white text-xl font-semibold">Пополнить {symbol}</DialogTitle>
+          <DialogTitle className="text-white text-xl font-semibold">Deposit {symbol}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Amount Input */}
           <div className="space-y-2">
-            <Label htmlFor="amount" className="text-gray-300">Количество</Label>
+            <Label htmlFor="amount" className="text-gray-300">Amount</Label>
             <div className="relative">
               <Input
                 id="amount"
@@ -571,20 +571,20 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
                 className="absolute right-2 top-1/2 -translate-y-1/2 h-6 px-2 text-xs text-blue-400 hover:text-blue-300"
                 onClick={handleMaxClick}
               >
-                МАКС
+                MAX
               </Button>
             </div>
           </div>
 
           {/* Balance Display */}
           <div className="flex items-center justify-between text-sm text-gray-400">
-            <span>Баланс: {formatNumber(parseFloat(balance), 2)} {symbol}</span>
+            <span>Balance: {formatNumber(parseFloat(balance), 2)} {symbol}</span>
             {parseFloat(balance) === 0 && (
               <a
                 href="/faucet"
                 className="text-blue-400 hover:text-blue-300 text-xs underline"
               >
-                Получить тестовые токены →
+                Get test tokens →
               </a>
             )}
           </div>
@@ -654,7 +654,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
           <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-lg space-y-2">
             <div className="text-sm text-gray-300">
               <div className="flex justify-between">
-                <span>Доход APY:</span>
+                <span>Deposit APY:</span>
                 <span className="text-green-400 font-medium">
                   {reserveData?.currentLiquidityRate
                     ? `${parseFloat(reserveData.currentLiquidityRate).toFixed(2)}%`
@@ -668,7 +668,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
           {/* Transaction Details */}
           {amount && (
             <div className="text-xs text-gray-400 space-y-1">
-              <div>Вы получите: r{symbol} токены</div>
+              <div>You'll receive: r{symbol} tokens</div>
             </div>
           )}
 
@@ -680,15 +680,15 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
             size="lg"
           >
             {isLoading ? (
-              'Обработка...'
+              'Processing...'
             ) : !address ? (
-              'Подключить кошелек'
+              'Connect wallet'
             ) : isInsufficientBalance ? (
-              'Недостаточно средств'
+              'Insufficient balance'
             ) : needsApproval ? (
-              `Подтвердить и пополнить ${symbol}`
+              `Approve and deposit ${symbol}`
             ) : (
-              `Пополнить ${symbol}`
+              `Deposit ${symbol}`
             )}
           </Button>
         </div>
@@ -719,8 +719,8 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
           undefined
         }
         stepDescription={
-          isFirstDeposit && approvalStep === 'approving' ? 'Подтверждение токена' :
-          isFirstDeposit && approvalStep === 'approved' && txStatus === 'pending' ? 'Пополнение' :
+          isFirstDeposit && approvalStep === 'approving' ? 'Token approval' :
+          isFirstDeposit && approvalStep === 'approved' && txStatus === 'pending' ? 'Deposit' :
           undefined
         }
         successMessage={successMessage || undefined
@@ -754,7 +754,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
             <div className="flex space-x-3">
               <Button
                 onClick={() => {
-                  // User chose "Отмена" - show success and close
+                  // User chose "Cancel" - show success and close
                   setConfirmDialog(prev => ({ ...prev, open: false }));
                   setTxStatus('success');
 
@@ -772,14 +772,14 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
                 className="flex-1 bg-slate-700 hover:bg-slate-600 text-white"
                 size="lg"
               >
-                Отмена
+                Cancel
               </Button>
               <Button
                 onClick={confirmDialog.onConfirm}
                 className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
                 size="lg"
               >
-                Активировать
+                Enable
               </Button>
             </div>
           </div>
@@ -801,10 +801,10 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
         amount=""
         symbol={symbol}
         step={
-          cleanupStep === 'checking' ? 'Шаг 1/2: Проверка долга...' :
-          cleanupStep === 'approving' ? 'Шаг 1/2: Подтверждение погашения...' :
-          cleanupStep === 'repaying' ? 'Шаг 1/2: Погашение долга...' :
-          cleanupStep === 'completed' ? 'Шаг 2/2: Активация залога...' :
+          cleanupStep === 'checking' ? 'Step 1/2: Checking debt...' :
+          cleanupStep === 'approving' ? 'Step 1/2: Approving repayment...' :
+          cleanupStep === 'repaying' ? 'Step 1/2: Repaying debt...' :
+          cleanupStep === 'completed' ? 'Step 2/2: Enabling collateral...' :
           undefined
         }
       />

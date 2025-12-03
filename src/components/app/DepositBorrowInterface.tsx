@@ -21,10 +21,10 @@ export default function DepositBorrowInterface() {
   })
 
   const tabs = [
-    { id: 'deposit', label: 'Депозит', color: 'blue' },
-    { id: 'borrow', label: 'Заём', color: 'green' },
-    { id: 'repay', label: 'Погасить', color: 'yellow' },
-    { id: 'withdraw', label: 'Вывести', color: 'purple' }
+    { id: 'deposit', label: 'Deposit', color: 'blue' },
+    { id: 'borrow', label: 'Borrow', color: 'green' },
+    { id: 'repay', label: 'Repay', color: 'yellow' },
+    { id: 'withdraw', label: 'Withdraw', color: 'purple' }
   ] as const
 
   const tokens = [
@@ -105,11 +105,11 @@ export default function DepositBorrowInterface() {
       setAmount('')
       
       // Show success message
-      alert(`${activeTab} выполнен успешно! Получено ${points} поинтов.`)
+      alert(`${activeTab} completed successfully! Earned ${points} points.`)
       
     } catch (error) {
       console.error('Transaction error:', error)
-      alert('Ошибка транзакции')
+      alert('Transaction error')
     } finally {
       setIsLoading(false)
     }
@@ -137,7 +137,7 @@ export default function DepositBorrowInterface() {
       {/* Token Selection */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-400 mb-3">
-          Выберите Токен
+          Select Token
         </label>
         <div className="grid grid-cols-2 gap-3">
           {tokens.map((token) => (
@@ -166,7 +166,7 @@ export default function DepositBorrowInterface() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">
-            Сумма
+            Amount
           </label>
           <div className="relative">
             <input
@@ -189,15 +189,15 @@ export default function DepositBorrowInterface() {
         {selectedTokenInfo && (
           <div className="bg-gray-800 p-4 rounded-lg space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">APY (Депозит):</span>
+              <span className="text-gray-400">APY (Deposit):</span>
               <span className="text-green-400">{selectedTokenInfo.depositAPY}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">APY (Заём):</span>
+              <span className="text-gray-400">APY (Borrow):</span>
               <span className="text-yellow-400">{selectedTokenInfo.borrowAPY}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Баланс:</span>
+              <span className="text-gray-400">Balance:</span>
               <span className="text-white">{selectedTokenInfo.balance} {selectedToken}</span>
             </div>
           </div>
@@ -214,24 +214,24 @@ export default function DepositBorrowInterface() {
             'bg-purple-600 hover:bg-purple-700'
           } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          {isLoading ? 'Обработка...' : 
-           activeTab === 'deposit' ? 'Внести Депозит' :
-           activeTab === 'borrow' ? 'Взять Заём' :
-           activeTab === 'repay' ? 'Погасить Заём' :
-           'Вывести Средства'}
+          {isLoading ? 'Processing...' :
+           activeTab === 'deposit' ? 'Make Deposit' :
+           activeTab === 'borrow' ? 'Take Loan' :
+           activeTab === 'repay' ? 'Repay Loan' :
+           'Withdraw Funds'}
         </button>
       </form>
 
       {/* Transaction Status */}
       {error && (
         <div className="mt-4 p-3 bg-red-500/10 border border-red-500 rounded-lg text-red-400 text-sm">
-          Ошибка: {error.message}
+          Error: {error.message}
         </div>
       )}
       
       {isSuccess && (
         <div className="mt-4 p-3 bg-green-500/10 border border-green-500 rounded-lg text-green-400 text-sm">
-          Транзакция выполнена успешно!
+          Transaction completed successfully!
         </div>
       )}
     </div>

@@ -38,7 +38,7 @@ export function RainbowProvider({ children }: { children: React.ReactNode }) {
             learnMoreUrl: 'https://neovalend.finance',
             disclaimer: () => (
               <div className="text-sm text-gray-400 text-center">
-                ₽ubleN - лендинговый протокол
+                Neovalend - Lending Protocol
               </div>
             ),
           }}

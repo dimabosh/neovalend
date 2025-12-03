@@ -157,7 +157,7 @@ export function CollateralDialog({ open, onOpenChange, asset }: CollateralDialog
         <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center">
-              Управление залогом
+              Collateral Management
             </DialogTitle>
           </DialogHeader>
 
@@ -175,14 +175,14 @@ export function CollateralDialog({ open, onOpenChange, asset }: CollateralDialog
                   {formatHealthFactor(accountData.healthFactor)}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {formatHealthFactor(accountData.healthFactor) === '∞' ? 'Нет займов' : 'Риск ликвидации при HF < 1.0'}
+                  {formatHealthFactor(accountData.healthFactor) === '∞' ? 'No debt' : 'Liquidation risk at HF < 1.0'}
                 </div>
               </div>
             )}
 
             {/* Assets list with their collateral status */}
             <div className="space-y-3">
-              <div className="text-sm font-medium text-gray-400 mb-3">Доступные активы</div>
+              <div className="text-sm font-medium text-gray-400 mb-3">Available assets</div>
 
               {allAssets.map(({ key, config, isCollateral }) => (
                 <div
@@ -212,7 +212,7 @@ export function CollateralDialog({ open, onOpenChange, asset }: CollateralDialog
                         {config.symbol}
                       </div>
                       <div className="text-xs text-gray-400 mt-0.5">
-                        {isCollateral ? 'Активен как залог' : 'Не используется'}
+                        {isCollateral ? 'Active as collateral' : 'Not used'}
                       </div>
                     </div>
                   </div>
@@ -224,7 +224,7 @@ export function CollateralDialog({ open, onOpenChange, asset }: CollateralDialog
                       size="sm"
                       className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
                     >
-                      Активировать
+                      Enable
                     </Button>
                   )}
                 </div>
@@ -238,7 +238,7 @@ export function CollateralDialog({ open, onOpenChange, asset }: CollateralDialog
                 variant="outline"
                 className="w-full bg-slate-700 hover:bg-slate-600 border-slate-600 text-white"
               >
-                Закрыть
+                Close
               </Button>
             </div>
           </div>

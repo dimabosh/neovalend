@@ -37,7 +37,7 @@ export default function ConnectWallet() {
                     onClick={openConnectModal}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity glow-blue"
                   >
-                    Подключить Кошелек
+                    Connect Wallet
                   </button>
                 )
               }
@@ -48,7 +48,7 @@ export default function ConnectWallet() {
                     onClick={openChainModal}
                     className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
                   >
-                    Неверная Сеть
+                    Wrong Network
                   </button>
                 )
               }

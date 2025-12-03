@@ -106,8 +106,9 @@ export function Dashboard() {
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo - clickable */}
-            <a href="/" className="text-lg sm:text-xl font-bold text-white hover:text-blue-400 transition-colors cursor-pointer">
-              ₽ubleN
+            <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer">
+              <img src="/img/logo_2.png" alt="Neovalend" className="h-8 sm:h-10 w-auto" />
+              <span className="text-lg sm:text-xl font-bold text-white hidden sm:inline">Neovalend</span>
             </a>
 
             {/* Desktop Links */}
@@ -115,12 +116,12 @@ export function Dashboard() {
               <a
                 href="/faucet"
                 className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors text-sm"
-                title="Получить токены"
+                title="Get Tokens"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Получить токены</span>
+                <span>Get Tokens</span>
               </a>
 
               <a
@@ -128,12 +129,12 @@ export function Dashboard() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors text-sm"
-                title="Документация"
+                title="Documentation"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
-                <span>Документация</span>
+                <span>Documentation</span>
               </a>
             </div>
 
@@ -142,7 +143,7 @@ export function Dashboard() {
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="sm:hidden p-2 text-gray-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-                aria-label="Меню"
+                aria-label="Menu"
               >
                 {isMobileMenuOpen ? (
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +170,7 @@ export function Dashboard() {
                         onClick={openConnectModal}
                         className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
                       >
-                        Подключить кошелек
+                        Connect Wallet
                       </Button>
                     )
                   }
@@ -190,7 +191,7 @@ export function Dashboard() {
                       <a
                         href="/points"
                         className="flex items-center justify-center p-1.5 sm:p-2 rounded-lg bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border border-yellow-400/30 hover:border-yellow-400/50 transition-colors"
-                        title="Поинты"
+                        title="Points"
                       >
                         <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -246,7 +247,7 @@ export function Dashboard() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>Получить токены</span>
+                  <span>Get Tokens</span>
                 </a>
 
                 <a
@@ -259,7 +260,7 @@ export function Dashboard() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  <span>Документация</span>
+                  <span>Documentation</span>
                 </a>
               </div>
             </div>
@@ -272,19 +273,19 @@ export function Dashboard() {
         {/* Protocol Stats - Global data from contracts */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
-                <div className="text-sm text-gray-400 mb-2">Общие депозиты</div>
+                <div className="text-sm text-gray-400 mb-2">Total Deposits</div>
                 <div className="text-2xl font-bold text-white">
                   ₽{formatNumber(Math.round(protocolStats.totalTVL * 90))}
                 </div>
               </div>
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
-                <div className="text-sm text-gray-400 mb-2">Общие займы</div>
+                <div className="text-sm text-gray-400 mb-2">Total Borrows</div>
                 <div className="text-2xl font-bold text-white">
                   ₽{formatNumber(Math.round(protocolStats.totalBorrows * 90))}
                 </div>
               </div>
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
-                <div className="text-sm text-gray-400 mb-2">Доступно для займа</div>
+                <div className="text-sm text-gray-400 mb-2">Available to Borrow</div>
                 <div className="text-2xl font-bold text-white">
                   ₽{formatNumber(Math.round(protocolStats.totalAvailable * 90))}
                 </div>
@@ -297,12 +298,12 @@ export function Dashboard() {
               {/* Supplied */}
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg overflow-visible">
                 <div className="p-4 border-b border-slate-700">
-                  <h2 className="text-lg font-semibold text-white">Мои депозиты</h2>
+                  <h2 className="text-lg font-semibold text-white">My Deposits</h2>
                 </div>
                 <div className="p-4 overflow-visible">
                   {activeSuppliedPositions.length === 0 ? (
                     <div className="text-center py-4">
-                      <p className="text-gray-400 text-sm">Пока нет депозитов</p>
+                      <p className="text-gray-400 text-sm">No deposits yet</p>
                     </div>
                   ) : (
                     <div className="space-y-3 overflow-visible">
@@ -321,8 +322,8 @@ export function Dashboard() {
                               <img
                                 src={
                                   position.assetConfig.symbol === 'USDT' ? '/img/usdt.png' :
-                                  position.assetConfig.symbol === 'BTC' ? '/img/wbtc.svg' :
-                                  '/img/a7a5.png'
+                                  position.assetConfig.symbol === 'BTC' ? '/img/btc.svg' :
+                                  '/img/gas.png'
                                 }
                                 alt={position.assetConfig.symbol}
                                 className="w-8 h-8 rounded-full"
@@ -338,14 +339,14 @@ export function Dashboard() {
                                       }
                                     </Badge>
                                     <div className="invisible group-hover:visible absolute bottom-full right-0 mb-2 w-64 p-3 bg-slate-700 border border-slate-600 rounded-lg text-xs text-gray-300 z-50 shadow-xl">
-                                      Годовая процентная ставка (APY) за депозит. Проценты начисляются автоматически и увеличивают ваш баланс.
+                                      Annual Percentage Yield (APY) for deposits. Interest is accrued automatically and increases your balance.
                                     </div>
                                   </div>
                                   {/* Collateral status icon */}
                                   <button
                                     onClick={() => openCollateralDialog(position.asset)}
                                     className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-slate-700 transition-colors"
-                                    title={userConfig?.isUsingAsCollateral(position.assetConfig.reserveIndex) ? 'Залог активен' : 'Не добавлен в залог'}
+                                    title={userConfig?.isUsingAsCollateral(position.assetConfig.reserveIndex) ? 'Collateral active' : 'Not used as collateral'}
                                   >
                                     {userConfig?.isUsingAsCollateral(position.assetConfig.reserveIndex) ? (
                                       <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -402,14 +403,14 @@ export function Dashboard() {
                                 size="sm"
                                 className="bg-slate-700 hover:bg-slate-600 text-white border-0 text-xs flex-1 sm:flex-none sm:w-24"
                               >
-                                Пополнить
+                                Deposit
                               </Button>
                               <Button
                                 onClick={() => openWithdrawDialog(position.asset)}
                                 size="sm"
                                 className="bg-slate-700 hover:bg-slate-600 text-white border-0 text-xs flex-1 sm:flex-none sm:w-24"
                               >
-                                Вывести
+                                Withdraw
                               </Button>
                             </div>
                           </div>
@@ -425,7 +426,7 @@ export function Dashboard() {
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg overflow-visible">
                 <div className="p-4 border-b border-slate-700">
                   <div className="flex items-center space-x-4">
-                    <h2 className="text-lg font-semibold text-white">Мои займы</h2>
+                    <h2 className="text-lg font-semibold text-white">My Borrows</h2>
                     {accountData && hasBorrowed && (
                       <div className="flex items-center space-x-2 group relative">
                         <span className="text-sm text-gray-400">Health Factor</span>
@@ -442,7 +443,7 @@ export function Dashboard() {
                           {accountData.healthFactor === '∞' || parseFloat(accountData.healthFactor) >= 99.99 ? '∞' : parseFloat(accountData.healthFactor).toFixed(2)}
                         </span>
                         <div className="invisible group-hover:visible absolute top-full right-0 mt-2 w-64 p-3 bg-slate-700 border border-slate-600 rounded-lg text-xs text-gray-300 z-10">
-                          Health Factor показывает безопасность вашей позиции. Если он упадет ниже 1.0, ваш залог может быть ликвидирован. Чем выше значение, тем безопаснее ваша позиция.
+                          Health Factor shows the safety of your position. If it drops below 1.0, your collateral may be liquidated. The higher the value, the safer your position.
                         </div>
                       </div>
                     )}
@@ -451,7 +452,7 @@ export function Dashboard() {
                 <div className="p-4 overflow-visible">
                   {activeBorrowedPositions.length === 0 ? (
                     <div className="text-center py-4">
-                      <p className="text-gray-400 text-sm">Пока нет займов</p>
+                      <p className="text-gray-400 text-sm">No borrows yet</p>
                     </div>
                   ) : (
                     <div className="space-y-3 overflow-visible">
@@ -470,8 +471,8 @@ export function Dashboard() {
                               <img
                                 src={
                                   position.assetConfig.symbol === 'USDT' ? '/img/usdt.png' :
-                                  position.assetConfig.symbol === 'BTC' ? '/img/wbtc.svg' :
-                                  '/img/a7a5.png'
+                                  position.assetConfig.symbol === 'BTC' ? '/img/btc.svg' :
+                                  '/img/gas.png'
                                 }
                                 alt={position.assetConfig.symbol}
                                 className="w-8 h-8 rounded-full"
@@ -487,7 +488,7 @@ export function Dashboard() {
                                       }
                                     </Badge>
                                     <div className="invisible group-hover:visible absolute bottom-full right-0 mb-2 w-64 p-3 bg-slate-700 border border-slate-600 rounded-lg text-xs text-gray-300 z-50 shadow-xl">
-                                      Годовая процентная ставка (APR) по займу. Проценты начисляются на сумму долга и увеличивают его со временем.
+                                      Annual Percentage Rate (APR) on borrows. Interest is accrued on your debt over time.
                                     </div>
                                   </div>
                                 </div>
@@ -535,14 +536,14 @@ export function Dashboard() {
                                 size="sm"
                                 className="bg-slate-700 hover:bg-slate-600 text-white border-0 text-xs flex-1 sm:flex-none sm:w-24"
                               >
-                                Занять
+                                Borrow
                               </Button>
                               <Button
                                 onClick={() => openRepayDialog(position.asset)}
                                 size="sm"
                                 className="bg-slate-700 hover:bg-slate-600 text-white border-0 text-xs flex-1 sm:flex-none sm:w-24"
                               >
-                                Погасить
+                                Repay
                               </Button>
                             </div>
                           </div>
@@ -562,11 +563,11 @@ export function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h2 className="text-xl font-semibold text-white">Все активы</h2>
+                      <h2 className="text-xl font-semibold text-white">All Assets</h2>
                       <button
                         onClick={() => window.location.reload()}
                         className="p-1.5 hover:bg-slate-700/50 rounded-lg transition-colors group"
-                        title="Обновить данные"
+                        title="Refresh data"
                       >
                         <svg
                           className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors"
@@ -578,7 +579,7 @@ export function Dashboard() {
                         </svg>
                       </button>
                     </div>
-                    <p className="text-sm text-gray-400">Доступные активы для депозита и займа</p>
+                    <p className="text-sm text-gray-400">Available assets for deposit and borrowing</p>
                   </div>
                 </div>
               </div>
@@ -587,14 +588,14 @@ export function Dashboard() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-slate-700">
-                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Актив</th>
-                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Депозиты</th>
-                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Займы</th>
-                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400 hidden md:table-cell">Использовано</th>
+                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Asset</th>
+                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Deposits</th>
+                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Borrows</th>
+                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400 hidden md:table-cell">Utilization</th>
                       <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400 hidden md:table-cell">LTV</th>
-                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Депозит %</th>
-                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Займ %</th>
-                      <th className="text-right py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Действия</th>
+                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Deposit %</th>
+                      <th className="text-left py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Borrow %</th>
+                      <th className="text-right py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-400">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -696,8 +697,8 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
           <img
             src={
               reserve.symbol === 'USDT' ? '/img/usdt.png' :
-              reserve.symbol === 'BTC' ? '/img/wbtc.svg' :
-              '/img/a7a5.png'
+              reserve.symbol === 'BTC' ? '/img/btc.svg' :
+              '/img/gas.png'
             }
             alt={reserve.symbol}
             className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
@@ -785,8 +786,8 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
             disabled={!address}
           >
             {assetPosition.hasSupplied ?
-              'Пополнить' :
-              'Депозит'
+              'Deposit' :
+              'Deposit'
             }
           </Button>
 
@@ -797,7 +798,7 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
             className="bg-slate-600/50 hover:bg-slate-600 text-white border-0 text-xs whitespace-nowrap w-24"
             disabled={!address}
           >
-            Занять
+            Borrow
           </Button>
         </div>
       </td>

@@ -205,13 +205,13 @@ export function RepayDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-slate-900 border-slate-700 text-white">
         <DialogHeader>
-          <DialogTitle className="text-white text-xl font-semibold">Погасить {symbol}</DialogTitle>
+          <DialogTitle className="text-white text-xl font-semibold">Repay {symbol}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Amount Input */}
           <div className="space-y-2">
-            <Label htmlFor="amount" className="text-gray-300">Количество</Label>
+            <Label htmlFor="amount" className="text-gray-300">Amount</Label>
             <div className="relative">
               <Input
                 id="amount"
@@ -227,7 +227,7 @@ export function RepayDialog({
                 className="absolute right-2 top-1/2 -translate-y-1/2 h-6 px-2 text-xs text-blue-400 hover:text-blue-300"
                 onClick={handleMaxClick}
               >
-                МАКС
+                MAX
               </Button>
             </div>
           </div>
@@ -235,10 +235,10 @@ export function RepayDialog({
           {/* Balance Display */}
           <div className="space-y-1 text-sm">
             <div className="text-gray-400">
-              Баланс кошелька: {formatNumber(parseFloat(balance), 2)} {symbol}
+              Wallet balance: {formatNumber(parseFloat(balance), 2)} {symbol}
             </div>
             <div className="text-gray-400">
-              Текущий займ: {formatNumber(parseFloat(borrowedAmount), 2)} {symbol}
+              Current loan: {formatNumber(parseFloat(borrowedAmount), 2)} {symbol}
             </div>
           </div>
 
@@ -307,7 +307,7 @@ export function RepayDialog({
           <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-lg space-y-2">
             <div className="text-sm text-gray-300">
               <div className="flex justify-between">
-                <span>Займ APY:</span>
+                <span>Borrow APY:</span>
                 <span className="text-orange-400 font-medium">
                   {reserveData?.currentVariableBorrowRate
                     ? `${parseFloat(reserveData.currentVariableBorrowRate).toFixed(2)}%`
@@ -320,20 +320,20 @@ export function RepayDialog({
           {/* Transaction Details */}
           {amount && (
             <div className="text-xs text-gray-400 space-y-1">
-              <div>После погашения займ составит: {formatNumber((parseFloat(borrowedAmount) - parseFloat(amount || '0')), 2)} {symbol}</div>
+              <div>After repayment loan will be: {formatNumber((parseFloat(borrowedAmount) - parseFloat(amount || '0')), 2)} {symbol}</div>
               {needsApproval && (
                 <div className="text-orange-400">
-                  ⚠️ Требуется подтверждение транзакции
+                  ⚠️ Transaction confirmation required
                 </div>
               )}
               {isInsufficientBalance && (
                 <div className="text-red-400">
-                  ⚠️ Недостаточно средств в кошельке
+                  ⚠️ Insufficient wallet balance
                 </div>
               )}
               {exceedsBorrowed && (
                 <div className="text-red-400">
-                  ⚠️ Сумма превышает текущий займ
+                  ⚠️ Amount exceeds current loan
                 </div>
               )}
             </div>
@@ -346,7 +346,7 @@ export function RepayDialog({
             className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-slate-700 disabled:to-slate-700 disabled:opacity-50 transition-all text-white"
             size="lg"
           >
-            {isLoading ? 'Погашение...' : needsApproval ? 'Подтвердить и погасить' : 'Погасить'}
+            {isLoading ? 'Repaying...' : needsApproval ? 'Approve and repay' : 'Repay'}
           </Button>
         </div>
       </DialogContent>

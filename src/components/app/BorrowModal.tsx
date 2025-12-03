@@ -37,10 +37,10 @@ export default function BorrowModal({
     setIsLoading(true)
     try {
       // Временно показываем уведомление, пока не реализованы функции займа
-      alert(`Займ ${amount} ${token} будет реализован после деплоя смарт-контрактов`)
+      alert(`Borrow ${amount} ${token} will be available after smart contracts deployment`)
     } catch (error) {
       console.error('Borrow error:', error)
-      alert('Ошибка при выполнении займа')
+      alert('Error executing borrow')
     } finally {
       setIsLoading(false)
     }
@@ -59,7 +59,7 @@ export default function BorrowModal({
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-white">
-            Займ {token}
+            Borrow {token}
           </h2>
           <button
             onClick={onClose}
@@ -77,7 +77,7 @@ export default function BorrowModal({
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
                 <img 
-                  src={token === 'USDT' ? '/img/usdt.png' : '/img/a7a5.png'} 
+                  src={token === 'USDT' ? '/img/usdt.png' : '/img/gas.png'} 
                   alt={token}
                   className="w-6 h-6 object-cover rounded-full"
                   onError={(e) => {
@@ -107,11 +107,11 @@ export default function BorrowModal({
           {token === 'A7A5' && (
             <div className="mt-3 p-3 bg-gray-800/30 border border-gray-700/50 rounded-lg">
               <div className="text-sm text-gray-300">
-                <div className="font-medium mb-1">Займ A7A5 - особенности:</div>
+                <div className="font-medium mb-1">Borrow A7A5 - features:</div>
                 <div className="text-xs space-y-0.5">
-                  <div>• Процентная ставка: +9% годовых</div>
-                  <div>• Возврат ребейза: +3.5% годовых</div>
-                  <div className="font-medium text-gray-200">Итоговая ставка: {borrowAPY}</div>
+                  <div>• Interest rate: +9% annually</div>
+                  <div>• Rebase return: +3.5% annually</div>
+                  <div className="font-medium text-gray-200">Total rate: {borrowAPY}</div>
                 </div>
               </div>
             </div>
@@ -123,7 +123,7 @@ export default function BorrowModal({
         {/* Amount Input */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Сумма займа
+            Borrow Amount
           </label>
           <input
             type="number"
@@ -134,7 +134,7 @@ export default function BorrowModal({
           />
           <div className="mt-2 flex justify-between items-center text-xs">
             <span className="text-gray-400">
-              Максимум: {token === 'USDT' ? '500.00' : '2,000.00'} {token}
+              Maximum: {token === 'USDT' ? '500.00' : '2,000.00'} {token}
             </span>
             <button
               onClick={handleMaxClick}
@@ -150,21 +150,21 @@ export default function BorrowModal({
           <div className="bg-gray-800/30 rounded-lg p-4 mb-6">
             <div className="text-sm text-gray-300 space-y-2">
               <div className="flex justify-between">
-                <span>Займ:</span>
+                <span>Borrow:</span>
                 <span className="text-white font-medium">{amount} {token}</span>
               </div>
               <div className="flex justify-between">
-                <span>Процентная ставка:</span>
+                <span>Interest rate:</span>
                 <span className="text-red-400 font-medium">{borrowAPY}</span>
               </div>
               <div className="flex justify-between">
-                <span>Проценты к доплате (год):</span>
+                <span>Interest to pay (yearly):</span>
                 <span className="text-white font-medium">
                   {(parseFloat(amount) * parseFloat(borrowAPY.replace('%', '')) / 100).toFixed(2)} {token}
                 </span>
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-700">
-                <span>Новый коэффициент здоровья:</span>
+                <span>New health factor:</span>
                 <span className="text-yellow-400 font-medium">2.45</span>
               </div>
             </div>
@@ -175,7 +175,7 @@ export default function BorrowModal({
         <div className="space-y-3">
           {!address ? (
             <div className="text-center py-3 text-gray-400">
-              Подключите кошелек для продолжения
+              Connect your wallet to continue
             </div>
           ) : (
             <>
@@ -184,11 +184,11 @@ export default function BorrowModal({
                 disabled={!amount || isLoading || isPending || isConfirming}
                 className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white py-3 px-4 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Подготовка...' : 
-                 isPending ? 'Подтверждение в кошельке...' :
-                 isConfirming ? 'Обработка транзакции...' :
-                 isSuccess ? 'Займ получен!' :
-                 `Взять займ ${token}`}
+                {isLoading ? 'Preparing...' :
+                 isPending ? 'Confirming in wallet...' :
+                 isConfirming ? 'Processing transaction...' :
+                 isSuccess ? 'Borrow received!' :
+                 `Borrow ${token}`}
               </button>
               
               {/* Cancel Button */}
@@ -196,7 +196,7 @@ export default function BorrowModal({
                 onClick={onClose}
                 className="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium transition-colors"
               >
-                Отменить
+                Cancel
               </button>
             </>
           )}
@@ -206,7 +206,7 @@ export default function BorrowModal({
         {isSuccess && (
           <div className="mt-4 p-3 bg-green-900/30 border border-green-800/50 rounded-lg">
             <div className="text-green-300 text-sm">
-              ✅ Займ успешно получен! Следите за коэффициентом здоровья.
+              Borrow received successfully! Monitor your health factor.
             </div>
           </div>
         )}

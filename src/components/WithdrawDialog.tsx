@@ -161,13 +161,13 @@ export function WithdrawDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-slate-900 border-slate-700 text-white">
         <DialogHeader>
-          <DialogTitle className="text-white text-xl font-semibold">Вывести {symbol}</DialogTitle>
+          <DialogTitle className="text-white text-xl font-semibold">Withdraw {symbol}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Amount Input */}
           <div className="space-y-2">
-            <Label htmlFor="amount" className="text-gray-300">Количество</Label>
+            <Label htmlFor="amount" className="text-gray-300">Amount</Label>
             <div className="relative">
               <Input
                 id="amount"
@@ -183,7 +183,7 @@ export function WithdrawDialog({
                 className="absolute right-2 top-1/2 -translate-y-1/2 h-6 px-2 text-xs text-blue-400 hover:text-blue-300"
                 onClick={handleMaxClick}
               >
-                МАКС
+                MAX
               </Button>
             </div>
           </div>
@@ -191,7 +191,7 @@ export function WithdrawDialog({
           {/* Balance Display */}
           <div className="space-y-1 text-sm">
             <div className="text-gray-400">
-              Доступно для вывода: {formatNumber(parseFloat(suppliedAmount), 2)} {symbol}
+              Available to withdraw: {formatNumber(parseFloat(suppliedAmount), 2)} {symbol}
             </div>
           </div>
 
@@ -260,7 +260,7 @@ export function WithdrawDialog({
           <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-lg space-y-2">
             <div className="text-sm text-gray-300">
               <div className="flex justify-between">
-                <span>Депозит APY:</span>
+                <span>Deposit APY:</span>
                 <span className="text-green-400 font-medium">
                   {reserveData?.currentLiquidityRate
                     ? `${parseFloat(reserveData.currentLiquidityRate).toFixed(2)}%`
@@ -273,15 +273,15 @@ export function WithdrawDialog({
           {/* Transaction Details */}
           {amount && (
             <div className="text-xs text-gray-400 space-y-1">
-              <div>После вывода депозит составит: {formatNumber((parseFloat(suppliedAmount) - parseFloat(amount || '0')), 2)} {symbol}</div>
+              <div>After withdrawal deposit will be: {formatNumber((parseFloat(suppliedAmount) - parseFloat(amount || '0')), 2)} {symbol}</div>
               {exceedsSupplied && (
                 <div className="text-red-400">
-                  ⚠️ Сумма превышает ваш депозит
+                  ⚠️ Amount exceeds your deposit
                 </div>
               )}
               {isHealthFactorTooLow && (
                 <div className="text-red-400">
-                  ⚠️ Health Factor упадет ниже 1.0 - опасность ликвидации!
+                  ⚠️ Health Factor will drop below 1.0 - liquidation risk!
                 </div>
               )}
             </div>
@@ -294,7 +294,7 @@ export function WithdrawDialog({
             className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-slate-700 disabled:to-slate-700 disabled:opacity-50 transition-all text-white"
             size="lg"
           >
-            {isLoading ? 'Вывод...' : 'Вывести'}
+            {isLoading ? 'Withdrawing...' : 'Withdraw'}
           </Button>
         </div>
       </DialogContent>

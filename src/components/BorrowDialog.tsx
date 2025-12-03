@@ -219,7 +219,7 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-slate-900 border-slate-700 text-white">
         <DialogHeader>
-          <DialogTitle className="text-white text-xl font-semibold">Занять {symbol}</DialogTitle>
+          <DialogTitle className="text-white text-xl font-semibold">Borrow {symbol}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -232,10 +232,10 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
                 </svg>
                 <div className="flex-1">
                   <h3 className="text-sm font-semibold text-orange-400 mb-2">
-                    Вы еще не добавили активы в качестве залога
+                    You have not added assets as collateral yet
                   </h3>
                   <p className="text-xs text-gray-300 mb-3">
-                    Чтобы занять токены, сначала добавьте ваши депозиты в качестве залога:
+                    To borrow tokens, first add your deposits as collateral:
                   </p>
                   <div className="space-y-2">
                     {activeSuppliedPositions.map((position) => (
@@ -245,7 +245,7 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
                             src={
                               position.assetConfig.symbol === 'USDT' ? '/img/usdt.png' :
                               position.assetConfig.symbol === 'USDC' ? '/img/usdc.png' :
-                              position.assetConfig.symbol === 'BTC' ? '/img/btc.png' :
+                              position.assetConfig.symbol === 'BTC' ? '/img/btc.svg' :
                               position.assetConfig.symbol === 'ETH' ? '/img/eth.png' :
                               position.assetConfig.symbol === 'NEO' ? '/img/neo.png' :
                               position.assetConfig.symbol === 'WGAS' ? '/img/gas.png' :
@@ -272,7 +272,7 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
                           size="sm"
                           className="bg-orange-600 hover:bg-orange-700 text-white text-xs h-7 px-3"
                         >
-                          Добавить
+                          Add
                         </Button>
                       </div>
                     ))}
@@ -284,7 +284,7 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
 
           {/* Amount Input */}
           <div className="space-y-2">
-            <Label htmlFor="amount" className="text-gray-300">Количество</Label>
+            <Label htmlFor="amount" className="text-gray-300">Amount</Label>
             <Input
               id="amount"
               type="number"
@@ -300,7 +300,7 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
             <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-lg space-y-3">
               <div className="text-sm text-gray-300">
                 <div className="flex justify-between mb-2">
-                  <span>Доступно для займа:</span>
+                  <span>Available to borrow:</span>
                   <span className="font-medium">
                     {symbol === 'WGAS' ?
                       `₽${formatNumber(Math.round(availableToBorrowUSD * 90))}` :
@@ -372,7 +372,7 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
           <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-lg space-y-2">
             <div className="text-sm text-gray-300">
               <div className="flex justify-between">
-                <span>Процентная ставка:</span>
+                <span>Interest rate:</span>
                 <span className="text-orange-400 font-medium">
                   {reserveData?.currentVariableBorrowRate
                     ? `${parseFloat(reserveData.currentVariableBorrowRate).toFixed(2)}%`
@@ -387,22 +387,22 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
             <div className="text-xs space-y-1">
               {isExceedingLimit && (
                 <div className="text-red-400">
-                  ❌ Превышает доступный лимит займа
+                  ❌ Exceeds available borrow limit
                 </div>
               )}
               {!isSafeAmount && !isExceedingLimit && (
                 <div className="text-orange-400">
-                  ⚠️ Высокая утилизация - рассмотрите меньшую сумму
+                  ⚠️ High utilization - consider a smaller amount
                 </div>
               )}
               {isHealthFactorWarning && !isExceedingLimit && (
                 <div className="text-orange-400">
-                  ⚠️ Health Factor ниже 1.5 - повышенный риск ликвидации
+                  ⚠️ Health Factor below 1.5 - increased liquidation risk
                 </div>
               )}
               {isSafeAmount && !isHealthFactorWarning && (
                 <div className="text-green-400">
-                  ✅ Безопасная сумма займа
+                  ✅ Safe borrow amount
                 </div>
               )}
             </div>
@@ -423,22 +423,22 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
             size="lg"
           >
             {isLoading ? (
-              'Обработка...'
+              'Processing...'
             ) : !address ? (
-              'Подключить кошелек'
+              'Connect wallet'
             ) : !accountData?.availableBorrowsBase || parseFloat(accountData.availableBorrowsBase) === 0 ? (
-              'Нет залога'
+              'No collateral'
             ) : isExceedingLimit ? (
-              'Превышает лимит займа'
+              'Exceeds borrow limit'
             ) : (
-              `Занять ${symbol}`
+              `Borrow ${symbol}`
             )}
           </Button>
 
           {/* Help Text */}
           {(!accountData?.availableBorrowsBase || parseFloat(accountData.availableBorrowsBase) === 0) && (
             <div className="text-xs text-gray-400 text-center">
-              Сначала внесите залог, чтобы получить займ
+              First deposit collateral to get a loan
             </div>
           )}
         </div>

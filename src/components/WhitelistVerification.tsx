@@ -66,10 +66,10 @@ export default function WhitelistVerification({ onVerified }: WhitelistVerificat
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">
-              Доступ к Testnet
+              Testnet Access
             </h1>
             <p className="text-gray-400 text-sm">
-              Подключите кошелек для верификации доступа
+              Connect your wallet to verify access
             </p>
           </div>
 
@@ -86,14 +86,14 @@ export default function WhitelistVerification({ onVerified }: WhitelistVerificat
                         onClick={openConnectModal}
                         className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all duration-200 transform hover:scale-105"
                       >
-                        Подключить кошелек
+                        Connect Wallet
                       </button>
                     )
                   }}
                 </ConnectButton.Custom>
               </div>
               <p className="text-xs text-gray-500">
-                Поддерживаются MetaMask, WalletConnect и другие
+                MetaMask, WalletConnect and others supported
               </p>
             </div>
           )}
@@ -102,9 +102,9 @@ export default function WhitelistVerification({ onVerified }: WhitelistVerificat
           {isConnected && isVerifying && (
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-gray-300 mb-2">Проверяем доступ...</p>
+              <p className="text-gray-300 mb-2">Verifying access...</p>
               <p className="text-xs text-gray-500">
-                Адрес: {address?.slice(0, 6)}...{address?.slice(-4)}
+                Address: {address?.slice(0, 6)}...{address?.slice(-4)}
               </p>
             </div>
           )}
@@ -118,10 +118,10 @@ export default function WhitelistVerification({ onVerified }: WhitelistVerificat
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-green-400 mb-2">
-                Доступ разрешен!
+                Access granted!
               </h3>
               <p className="text-gray-400 text-sm">
-                Перенаправляем на платформу...
+                Redirecting to platform...
               </p>
             </div>
           )}
@@ -131,10 +131,10 @@ export default function WhitelistVerification({ onVerified }: WhitelistVerificat
             <div className="text-center">
               <div className="bg-gray-700 border border-gray-600 rounded-lg p-4 mb-6">
                 <p className="text-gray-300 text-sm mb-2">
-                  Вашего кошелька нет в списке для тестирования.
+                  Your wallet is not in the testing whitelist.
                 </p>
                 <p className="text-gray-300 text-sm">
-                  Если это произошло по ошибке, свяжитесь с нами.
+                  If this is an error, please contact us.
                 </p>
               </div>
 
@@ -147,7 +147,7 @@ export default function WhitelistVerification({ onVerified }: WhitelistVerificat
                         onClick={openAccountModal}
                         className="text-sm text-gray-400 hover:text-gray-300 underline"
                       >
-                        Отключить кошелек
+                        Disconnect wallet
                       </button>
                     )
                   )}
@@ -160,7 +160,7 @@ export default function WhitelistVerification({ onVerified }: WhitelistVerificat
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-xs text-gray-500">
-            Neovalend Testnet • Только для кошельков, которым выдан доступ
+            Neovalend Testnet • Only for whitelisted wallets
           </p>
         </div>
       </div>

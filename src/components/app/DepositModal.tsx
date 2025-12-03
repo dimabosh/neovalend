@@ -43,7 +43,7 @@ export default function DepositModal({
       }
     } catch (error) {
       console.error('Deposit error:', error)
-      alert('Ошибка при выполнении депозита')
+      alert('Error executing deposit')
     } finally {
       setIsLoading(false)
     }
@@ -62,7 +62,7 @@ export default function DepositModal({
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-white">
-            Депозит {token}
+            Deposit {token}
           </h2>
           <button
             onClick={onClose}
@@ -80,7 +80,7 @@ export default function DepositModal({
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
                 <img 
-                  src={token === 'USDT' ? '/img/usdt.png' : '/img/a7a5.png'} 
+                  src={token === 'USDT' ? '/img/usdt.png' : '/img/gas.png'} 
                   alt={token}
                   className="w-6 h-6 object-cover rounded-full"
                   onError={(e) => {
@@ -110,11 +110,11 @@ export default function DepositModal({
           {token === 'A7A5' && (
             <div className="mt-3 p-3 bg-gray-800/30 border border-gray-700/50 rounded-lg">
               <div className="text-sm text-gray-300">
-                <div className="font-medium mb-1">Депозит A7A5 - особенности:</div>
+                <div className="font-medium mb-1">Deposit A7A5 - features:</div>
                 <div className="text-xs space-y-0.5">
-                  <div>• Базовая ставка: +7% годовых</div>
-                  <div>• Возврат ребейза: +3.5% годовых</div>
-                  <div className="font-medium text-gray-200">Общая доходность: {supplyAPY}</div>
+                  <div>• Base rate: +7% annually</div>
+                  <div>• Rebase return: +3.5% annually</div>
+                  <div className="font-medium text-gray-200">Total yield: {supplyAPY}</div>
                 </div>
               </div>
             </div>
@@ -124,7 +124,7 @@ export default function DepositModal({
         {/* Amount Input */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Сумма депозита
+            Deposit Amount
           </label>
           <input
             type="number"
@@ -135,7 +135,7 @@ export default function DepositModal({
           />
           <div className="mt-2 flex justify-between items-center text-xs">
             <span className="text-gray-400">
-              Доступно: {token === 'USDT' ? '1,000.00' : '5,000.00'} {token}
+              Available: {token === 'USDT' ? '1,000.00' : '5,000.00'} {token}
             </span>
             <button
               onClick={handleMaxClick}
@@ -151,7 +151,7 @@ export default function DepositModal({
           <div className="bg-gray-800/30 rounded-lg p-4 mb-6">
             <div className="text-sm text-gray-300 space-y-2">
               <div className="flex justify-between">
-                <span>Депозит:</span>
+                <span>Deposit:</span>
                 <span className="text-white font-medium">{amount} {token}</span>
               </div>
               <div className="flex justify-between">
@@ -159,7 +159,7 @@ export default function DepositModal({
                 <span className="text-green-400 font-medium">{supplyAPY}</span>
               </div>
               <div className="flex justify-between">
-                <span>Ожидаемый доход (год):</span>
+                <span>Expected income (yearly):</span>
                 <span className="text-white font-medium">
                   {(parseFloat(amount) * parseFloat(supplyAPY.replace('%', '')) / 100).toFixed(2)} {token}
                 </span>
@@ -172,7 +172,7 @@ export default function DepositModal({
         <div className="space-y-3">
           {!address ? (
             <div className="text-center py-3 text-gray-400">
-              Подключите кошелек для продолжения
+              Connect your wallet to continue
             </div>
           ) : (
             <>
@@ -181,11 +181,11 @@ export default function DepositModal({
                 disabled={!amount || isLoading || isPending || isConfirming}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Подготовка...' : 
-                 isPending ? 'Подтверждение в кошельке...' :
-                 isConfirming ? 'Обработка транзакции...' :
-                 isSuccess ? 'Депозит завершен!' :
-                 `Внести ${token}`}
+                {isLoading ? 'Preparing...' :
+                 isPending ? 'Confirming in wallet...' :
+                 isConfirming ? 'Processing transaction...' :
+                 isSuccess ? 'Deposit completed!' :
+                 `Deposit ${token}`}
               </button>
               
               {/* Cancel Button */}
@@ -193,7 +193,7 @@ export default function DepositModal({
                 onClick={onClose}
                 className="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium transition-colors"
               >
-                Отменить
+                Cancel
               </button>
             </>
           )}
@@ -203,7 +203,7 @@ export default function DepositModal({
         {isSuccess && (
           <div className="mt-4 p-3 bg-green-900/30 border border-green-800/50 rounded-lg">
             <div className="text-green-300 text-sm">
-              ✅ Депозит успешно выполнен! Транзакция подтверждена.
+              Deposit completed successfully! Transaction confirmed.
             </div>
           </div>
         )}
