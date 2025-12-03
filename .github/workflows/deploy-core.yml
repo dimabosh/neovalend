@@ -882,7 +882,7 @@ jobs:
           echo ""
           node scripts/deploy/hotfix-update-prices.js
 
-  # Phase Faucet: Deploy Faucet Contract for Token Distribution
+  # Phase Faucet: Deploy SimpleFaucet Contract for Token Distribution
   faucet:
     if: github.event.inputs.phase == 'faucet'
     runs-on: ubuntu-latest
@@ -907,7 +907,7 @@ jobs:
         with:
           version: nightly
 
-      - name: Deploy Faucet Contract
+      - name: Deploy SimpleFaucet Contract
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           RPC_URL_SEPOLIA: ${{ github.event.inputs.network == 'neox-testnet' && 'https://neoxt4seed1.ngd.network/' || github.event.inputs.network == 'neox-mainnet' && 'https://mainnet-1.rpc.banelabs.org/' || github.event.inputs.network == 'sepolia' && secrets.RPC_URL_SEPOLIA || secrets.RPC_URL_SEPOLIA }}
@@ -916,9 +916,12 @@ jobs:
           FORCE_REDEPLOY: ${{ github.event.inputs.force_redeploy }}
           NETWORK: ${{ github.event.inputs.network }}
         run: |
-          echo "🚰 Phase Faucet: Deploy Testnet Faucet Contract"
-          echo "💰 Cost: ~$0.2 USD | 1 contract"
-          echo "📋 Features: Token distribution with 24h cooldown"
+          echo "🚰 Phase Faucet: Deploy SimpleFaucet Contract"
+          echo "💰 Cost: ~$0.1 USD | 1 contract"
+          echo "📋 Features:"
+          echo "  - Token distribution with 24h cooldown"
+          echo "  - Pre-funded balance (owner transfers tokens)"
+          echo "  - Configurable claim amounts per token"
           echo ""
           node scripts/deploy/phase-faucet.js
 
@@ -927,22 +930,32 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add deployments/
-          git commit -m "🚰 Phase Faucet: Deployed Faucet contract ✅" || exit 0
+          git commit -m "🚰 SimpleFaucet deployed ✅" || exit 0
           git push
 
       - name: Summary
         run: |
-          echo "## 🚰 Faucet Contract Deployed!" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚰 SimpleFaucet Contract Deployed!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Features:" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ 24-hour cooldown per token per user" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Distributes USDT (1,000), wA7A5 (100,000), WBTC (0.1)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Owner-controlled amounts and cooldown" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Pre-funded balance model (owner transfers tokens to faucet)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Configurable claim amounts per token" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Supports all tokens: NEO, USDT, USDC, ETH, BTC" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Default Claim Amounts:" >> $GITHUB_STEP_SUMMARY
+          echo "| Token | Amount |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| NEO | 100 |" >> $GITHUB_STEP_SUMMARY
+          echo "| USDT | 1,000 |" >> $GITHUB_STEP_SUMMARY
+          echo "| USDC | 1,000 |" >> $GITHUB_STEP_SUMMARY
+          echo "| ETH | 1 |" >> $GITHUB_STEP_SUMMARY
+          echo "| BTC | 0.1 |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
-          echo "1. Transfer tokens to Faucet contract address" >> $GITHUB_STEP_SUMMARY
-          echo "2. Update frontend to use Faucet contract" >> $GITHUB_STEP_SUMMARY
-          echo "3. Users can request tokens via requestUSDT(), requestWA7A5(), requestWBTC()" >> $GITHUB_STEP_SUMMARY
+          echo "1. Transfer tokens to SimpleFaucet contract" >> $GITHUB_STEP_SUMMARY
+          echo "2. Update SIMPLE_FAUCET_ADDRESS in src/config/contracts.ts" >> $GITHUB_STEP_SUMMARY
+          echo "3. Users can claim via /faucet page" >> $GITHUB_STEP_SUMMARY
 
   # Show deployment status
   status:
