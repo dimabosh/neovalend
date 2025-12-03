@@ -120,7 +120,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo - clickable */}
             <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer">
-              <img src="/img/logo_2.png" alt="NeovaLend" className="h-8 sm:h-10 w-auto" />
+              <img src="/img/logo_3.png" alt="NeovaLend" className="h-8 sm:h-10 w-auto" />
               <span className="text-lg sm:text-xl font-bold text-white hidden sm:inline">NeovaLend</span>
             </a>
 
