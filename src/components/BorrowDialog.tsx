@@ -244,8 +244,12 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
                           <img
                             src={
                               position.assetConfig.symbol === 'USDT' ? '/img/usdt.png' :
-                              position.assetConfig.symbol === 'WBTC' ? '/img/wbtc.svg' :
-                              '/img/a7a5.png'
+                              position.assetConfig.symbol === 'USDC' ? '/img/usdc.png' :
+                              position.assetConfig.symbol === 'BTC' ? '/img/btc.png' :
+                              position.assetConfig.symbol === 'ETH' ? '/img/eth.png' :
+                              position.assetConfig.symbol === 'NEO' ? '/img/neo.png' :
+                              position.assetConfig.symbol === 'WGAS' ? '/img/gas.png' :
+                              '/img/token.png'
                             }
                             alt={position.assetConfig.symbol}
                             className="w-5 h-5 rounded-full"
