@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useAccount, useWaitForTransactionReceipt, usePublicClient, useWriteContract } from 'wagmi';
 import { Address, formatUnits } from 'viem';
 import { useAavePool, useTokenData, useTokenApproval, useReserveData, useUserAccountData, useUserConfiguration } from '@/hooks/useAavePool';
-import { RESERVE_ASSETS, getContractConfig, SEPOLIA_CONTRACTS, POOL_ABI } from '@/config/contracts';
+import { RESERVE_ASSETS, getContractConfig, NEOX_TESTNET_CONTRACTS, POOL_ABI } from '@/config/contracts';
 import { useChainId } from 'wagmi';
 import { TransactionModal } from './TransactionModal';
 import { formatNumber } from '@/lib/utils';
@@ -309,7 +309,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
 
         // Get user configuration to check borrowing flag
         const userConfig = await publicClient.readContract({
-          address: SEPOLIA_CONTRACTS.POOL as Address,
+          address: NEOX_TESTNET_CONTRACTS.POOL as Address,
           abi: POOL_ABI,
           functionName: 'getUserConfiguration',
           args: [address],
@@ -397,7 +397,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
                 type: 'function',
               }],
               functionName: 'approve',
-              args: [SEPOLIA_CONTRACTS.POOL, repayAmount],
+              args: [NEOX_TESTNET_CONTRACTS.POOL, repayAmount],
             });
 
             await publicClient.waitForTransactionReceipt({ hash: approveHash });
@@ -406,7 +406,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
             // Repay debt to clear borrowing flag
             setCleanupStep('repaying');
             const repayHash = await writeContract({
-              address: SEPOLIA_CONTRACTS.POOL as Address,
+              address: NEOX_TESTNET_CONTRACTS.POOL as Address,
               abi: POOL_ABI,
               functionName: 'repay',
               args: [
@@ -467,7 +467,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
             // Repay the dust amount
             setCleanupStep('repaying');
             const repayHash = await writeContract({
-              address: SEPOLIA_CONTRACTS.POOL as Address,
+              address: NEOX_TESTNET_CONTRACTS.POOL as Address,
               abi: POOL_ABI,
               functionName: 'repay',
               args: [
