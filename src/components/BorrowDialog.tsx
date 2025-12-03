@@ -59,7 +59,8 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
   const oraclePriceData = useOraclePrice(tokenAddress);
 
   // Get pool's available liquidity (underlying token balance in aToken contract)
-  const aTokenAddress = reserveConfig.aToken as Address | undefined;
+  // aTokenAddress comes from reserveData (fetched from blockchain)
+  const aTokenAddress = reserveData?.aTokenAddress as Address | undefined;
 
   // Available liquidity = underlying token balance held by aToken contract
   const { data: underlyingBalance } = useReadContract({
@@ -371,7 +372,7 @@ export function BorrowDialog({ open, onOpenChange, asset }: BorrowDialogProps) {
                 <span className="text-orange-400 font-medium">
                   {reserveData?.currentVariableBorrowRate
                     ? `${parseFloat(reserveData.currentVariableBorrowRate).toFixed(2)}%`
-                    : reserveConfig.rates.baseRate}
+                    : '~5%'}
                 </span>
               </div>
             </div>
