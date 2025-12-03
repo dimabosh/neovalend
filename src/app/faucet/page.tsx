@@ -57,7 +57,7 @@ function TokenCard({
   });
 
   // Get faucet balance for this token
-  const { data: faucetBalance } = useReadContract({
+  const { data: faucetBalance, refetch: refetchFaucetBalance } = useReadContract({
     address: faucetAddress,
     abi: SIMPLE_FAUCET_ABI,
     functionName: 'getBalance',
@@ -90,8 +90,9 @@ function TokenCard({
       setIsClaiming(false);
       setTxHash(undefined);
       refetchCanClaim();
+      refetchFaucetBalance();
     }
-  }, [isSuccess, refetchCanClaim]);
+  }, [isSuccess, refetchCanClaim, refetchFaucetBalance]);
 
   const handleClaim = async () => {
     if (!tokenAddress || !faucetAddress) return;
