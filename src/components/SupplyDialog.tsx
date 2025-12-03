@@ -331,8 +331,12 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
         if (borrowingBit === 1) {
           console.log(`⚠️ Borrowing flag detected for ${symbol} (reserve ${reserveIndex}), checking debt...`);
 
-          // Get variable debt balance
-          const debtTokenAddress = assetConfig.variableDebtToken as Address;
+          // Get variable debt balance from reserveData (blockchain)
+          const debtTokenAddress = reserveData?.variableDebtTokenAddress as Address | undefined;
+          if (!debtTokenAddress) {
+            console.log('⚠️ No debt token address available');
+            return;
+          }
           const debtBalance = await publicClient.readContract({
             address: debtTokenAddress,
             abi: [{
