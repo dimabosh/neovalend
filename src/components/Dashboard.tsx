@@ -29,6 +29,50 @@ function getAssetIcon(symbol: string): string {
   }
 }
 
+// Helper function to get USD price for each asset
+function getAssetPriceUSD(symbol: string): number {
+  switch (symbol) {
+    case 'WGAS': return 2.20;
+    case 'NEO': return 4.30;
+    case 'USDT': return 1.00;
+    case 'USDC': return 1.00;
+    case 'ETH': return 3000;
+    case 'BTC': return 90000;
+    default: return 1;
+  }
+}
+
+// Helper function to check if asset is a stablecoin
+function isStablecoin(symbol: string): boolean {
+  return symbol === 'USDT' || symbol === 'USDC';
+}
+
+// Format asset display - token amount for non-stables, $ for stables
+function formatAssetValue(symbol: string, amount: number): { primary: string; secondary: string } {
+  const price = getAssetPriceUSD(symbol);
+  const usdValue = amount * price;
+
+  if (isStablecoin(symbol)) {
+    return {
+      primary: `$${formatNumber(amount, 2)}`,
+      secondary: ''
+    };
+  }
+
+  if (symbol === 'BTC') {
+    return {
+      primary: `₿${formatNumber(amount, 4)}`,
+      secondary: `≈ $${formatNumber(Math.round(usdValue))}`
+    };
+  }
+
+  // WGAS, NEO, ETH - show token amount with USD equivalent
+  return {
+    primary: `${formatNumber(amount, 2)} ${symbol}`,
+    secondary: `≈ $${formatNumber(Math.round(usdValue))}`
+  };
+}
+
 export function Dashboard() {
   const [supplyDialogOpen, setSupplyDialogOpen] = useState(false);
   const [borrowDialogOpen, setBorrowDialogOpen] = useState(false);
@@ -120,8 +164,8 @@ export function Dashboard() {
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo - clickable */}
             <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer">
-              <img src="/img/logo_3.png" alt="NeovaLend" className="h-8 sm:h-10 w-auto" />
-              <span className="text-lg sm:text-xl font-bold text-white hidden sm:inline">NeovaLend</span>
+              <img src="/img/logo_3.png" alt="NeovaLend" className="h-8 sm:h-10 w-auto object-contain" />
+              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent hidden sm:inline">NeovaLend</span>
             </a>
 
             {/* Desktop Links */}
@@ -345,40 +389,28 @@ export function Dashboard() {
                               </div>
                             </div>
                             <div className="text-right sm:hidden">
-                              <div className="font-medium text-white text-sm">
-                                {position.assetConfig.symbol === 'WGAS' ?
-                                  `$${formatNumber(parseFloat(position.supplied) * 0.01, 2)}` :
-                                position.assetConfig.symbol === 'BTC' ?
-                                  `₿${formatNumber(parseFloat(position.supplied), 4)}` :
-                                  `$${formatNumber(parseFloat(position.supplied))}`
-                                }
-                              </div>
-                              <div className="text-xs text-gray-400">
-                                {position.assetConfig.symbol === 'WGAS' ? `${formatNumber(parseFloat(position.supplied), 2)} WGAS` :
-                                position.assetConfig.symbol === 'BTC' ?
-                                  `≈ $${formatNumber(parseFloat(position.supplied) * 120000)}` :
-                                  ''
-                                }
-                              </div>
+                              {(() => {
+                                const formatted = formatAssetValue(position.assetConfig.symbol, parseFloat(position.supplied));
+                                return (
+                                  <>
+                                    <div className="font-medium text-white text-sm">{formatted.primary}</div>
+                                    {formatted.secondary && <div className="text-xs text-gray-400">{formatted.secondary}</div>}
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                           <div className="flex items-center justify-between sm:justify-end sm:space-x-6">
                             <div className="hidden sm:block text-right min-w-[120px]">
-                              <div className="font-medium text-white">
-                                {position.assetConfig.symbol === 'WGAS' ?
-                                  `$${formatNumber(parseFloat(position.supplied) * 0.01, 2)}` :
-                                position.assetConfig.symbol === 'BTC' ?
-                                  `₿${formatNumber(parseFloat(position.supplied), 4)}` :
-                                  `$${formatNumber(parseFloat(position.supplied))}`
-                                }
-                              </div>
-                              <div className="text-sm text-gray-400">
-                                {position.assetConfig.symbol === 'WGAS' ? `${formatNumber(parseFloat(position.supplied), 2)} WGAS` :
-                                position.assetConfig.symbol === 'BTC' ?
-                                  `≈ $${formatNumber(parseFloat(position.supplied) * 120000)}` :
-                                  ''
-                                }
-                              </div>
+                              {(() => {
+                                const formatted = formatAssetValue(position.assetConfig.symbol, parseFloat(position.supplied));
+                                return (
+                                  <>
+                                    <div className="font-medium text-white">{formatted.primary}</div>
+                                    {formatted.secondary && <div className="text-sm text-gray-400">{formatted.secondary}</div>}
+                                  </>
+                                );
+                              })()}
                             </div>
                             <div className="flex space-x-2 sm:flex-col sm:space-x-0 sm:space-y-1 w-full sm:w-auto">
                               <Button
@@ -474,40 +506,28 @@ export function Dashboard() {
                               </div>
                             </div>
                             <div className="text-right sm:hidden">
-                              <div className="font-medium text-white text-sm">
-                                {position.assetConfig.symbol === 'WGAS' ?
-                                  `$${formatNumber(parseFloat(position.borrowed) * 0.01, 2)}` :
-                                position.assetConfig.symbol === 'BTC' ?
-                                  `₿${formatNumber(parseFloat(position.borrowed), 4)}` :
-                                  `$${formatNumber(parseFloat(position.borrowed))}`
-                                }
-                              </div>
-                              <div className="text-xs text-gray-400">
-                                {position.assetConfig.symbol === 'WGAS' ? `${formatNumber(parseFloat(position.borrowed), 2)} WGAS` :
-                                position.assetConfig.symbol === 'BTC' ?
-                                  `≈ $${formatNumber(parseFloat(position.borrowed) * 120000)}` :
-                                  ''
-                                }
-                              </div>
+                              {(() => {
+                                const formatted = formatAssetValue(position.assetConfig.symbol, parseFloat(position.borrowed));
+                                return (
+                                  <>
+                                    <div className="font-medium text-white text-sm">{formatted.primary}</div>
+                                    {formatted.secondary && <div className="text-xs text-gray-400">{formatted.secondary}</div>}
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                           <div className="flex items-center justify-between sm:justify-end sm:space-x-6">
                             <div className="hidden sm:block text-right min-w-[120px]">
-                              <div className="font-medium text-white">
-                                {position.assetConfig.symbol === 'WGAS' ?
-                                  `$${formatNumber(parseFloat(position.borrowed) * 0.01, 2)}` :
-                                position.assetConfig.symbol === 'BTC' ?
-                                  `₿${formatNumber(parseFloat(position.borrowed), 4)}` :
-                                  `$${formatNumber(parseFloat(position.borrowed))}`
-                                }
-                              </div>
-                              <div className="text-sm text-gray-400">
-                                {position.assetConfig.symbol === 'WGAS' ? `${formatNumber(parseFloat(position.borrowed), 2)} WGAS` :
-                                position.assetConfig.symbol === 'BTC' ?
-                                  `≈ $${formatNumber(parseFloat(position.borrowed) * 120000)}` :
-                                  ''
-                                }
-                              </div>
+                              {(() => {
+                                const formatted = formatAssetValue(position.assetConfig.symbol, parseFloat(position.borrowed));
+                                return (
+                                  <>
+                                    <div className="font-medium text-white">{formatted.primary}</div>
+                                    {formatted.secondary && <div className="text-sm text-gray-400">{formatted.secondary}</div>}
+                                  </>
+                                );
+                              })()}
                             </div>
                             <div className="flex space-x-2 sm:flex-col sm:space-x-0 sm:space-y-1 w-full sm:w-auto">
                               <Button
@@ -685,36 +705,38 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
       </td>
 
       <td className="py-3 px-3 sm:py-4 sm:px-6">
-        <div className="text-white text-xs sm:text-sm whitespace-nowrap">
-          {assetStats ? (
-            reserve.symbol === 'WGAS' ?
-              `$${formatNumber(assetStats.supplyUSD, 2)}` :
-            reserve.symbol === 'BTC' ?
-              `₿${formatNumber(assetStats.supplyAmount, 4)}` :
-              `$${formatNumber(Math.round(assetStats.supplyAmount))}`
-          ) : '0'}
-        </div>
-        {assetStats && assetStats.supplyAmount > 0 && reserve.symbol === 'BTC' && (
-          <div className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
-            ≈ ${formatNumber(Math.round(assetStats.supplyUSD))}
-          </div>
+        {assetStats && assetStats.supplyAmount > 0 ? (
+          (() => {
+            const formatted = formatAssetValue(reserve.symbol, assetStats.supplyAmount);
+            return (
+              <>
+                <div className="text-white text-xs sm:text-sm whitespace-nowrap">{formatted.primary}</div>
+                {formatted.secondary && (
+                  <div className="text-xs text-gray-400 whitespace-nowrap mt-0.5">{formatted.secondary}</div>
+                )}
+              </>
+            );
+          })()
+        ) : (
+          <div className="text-white text-xs sm:text-sm whitespace-nowrap">0</div>
         )}
       </td>
 
       <td className="py-3 px-3 sm:py-4 sm:px-6">
-        <div className="text-white text-xs sm:text-sm whitespace-nowrap">
-          {assetStats ? (
-            reserve.symbol === 'WGAS' ?
-              `$${formatNumber(assetStats.debtUSD, 2)}` :
-            reserve.symbol === 'BTC' ?
-              `₿${formatNumber(assetStats.debtAmount, 4)}` :
-              `$${formatNumber(Math.round(assetStats.debtAmount))}`
-          ) : '0'}
-        </div>
-        {assetStats && assetStats.debtAmount > 0 && reserve.symbol === 'BTC' && (
-          <div className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
-            ≈ ${formatNumber(Math.round(assetStats.debtUSD))}
-          </div>
+        {assetStats && assetStats.debtAmount > 0 ? (
+          (() => {
+            const formatted = formatAssetValue(reserve.symbol, assetStats.debtAmount);
+            return (
+              <>
+                <div className="text-white text-xs sm:text-sm whitespace-nowrap">{formatted.primary}</div>
+                {formatted.secondary && (
+                  <div className="text-xs text-gray-400 whitespace-nowrap mt-0.5">{formatted.secondary}</div>
+                )}
+              </>
+            );
+          })()
+        ) : (
+          <div className="text-white text-xs sm:text-sm whitespace-nowrap">0</div>
         )}
       </td>
 
