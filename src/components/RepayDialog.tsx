@@ -311,7 +311,7 @@ export function RepayDialog({
                 <span className="text-orange-400 font-medium">
                   {reserveData?.currentVariableBorrowRate
                     ? `${parseFloat(reserveData.currentVariableBorrowRate).toFixed(2)}%`
-                    : assetConfig.rates.baseRate}
+                    : '~5%'}
                 </span>
               </div>
             </div>

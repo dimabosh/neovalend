@@ -653,7 +653,7 @@ export function SupplyDialog({ open, onOpenChange, asset }: SupplyDialogProps) {
                 <span className="text-green-400 font-medium">
                   {reserveData?.currentLiquidityRate
                     ? `${parseFloat(reserveData.currentLiquidityRate).toFixed(2)}%`
-                    : assetConfig.rates.baseRate}
+                    : '~5%'}
                 </span>
               </div>
             </div>

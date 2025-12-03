@@ -334,7 +334,7 @@ export function Dashboard() {
                                     <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0 cursor-help focus:ring-offset-0">
                                       {reserveData?.currentLiquidityRate
                                         ? `${parseFloat(reserveData.currentLiquidityRate).toFixed(2)}%`
-                                        : position.assetConfig.rates.baseRate
+                                        : '~5%'
                                       }
                                     </Badge>
                                     <div className="invisible group-hover:visible absolute bottom-full right-0 mb-2 w-64 p-3 bg-slate-700 border border-slate-600 rounded-lg text-xs text-gray-300 z-50 shadow-xl">
@@ -483,7 +483,7 @@ export function Dashboard() {
                                     <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs px-1.5 py-0 cursor-help focus:ring-offset-0">
                                       {reserveData?.currentVariableBorrowRate
                                         ? `${parseFloat(reserveData.currentVariableBorrowRate).toFixed(2)}%`
-                                        : position.assetConfig.rates.slope1
+                                        : '~8%'
                                       }
                                     </Badge>
                                     <div className="invisible group-hover:visible absolute bottom-full right-0 mb-2 w-64 p-3 bg-slate-700 border border-slate-600 rounded-lg text-xs text-gray-300 z-50 shadow-xl">
@@ -761,7 +761,7 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
         <div className="font-medium text-green-400 text-xs sm:text-sm whitespace-nowrap">
           {reserveData?.currentLiquidityRate
             ? `${parseFloat(reserveData.currentLiquidityRate).toFixed(2)}%`
-            : reserve.rates.baseRate
+            : '~5%'
           }
         </div>
       </td>
@@ -770,7 +770,7 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
         <div className="font-medium text-orange-400 text-xs sm:text-sm whitespace-nowrap">
           {reserveData?.currentVariableBorrowRate
             ? `${parseFloat(reserveData.currentVariableBorrowRate).toFixed(2)}%`
-            : reserve.rates.slope1
+            : '~8%'
           }
         </div>
       </td>
