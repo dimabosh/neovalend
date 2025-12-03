@@ -11,6 +11,7 @@ import { BorrowDialog } from './BorrowDialog';
 import { RepayDialog } from './RepayDialog';
 import { WithdrawDialog } from './WithdrawDialog';
 import { CollateralDialog } from './CollateralDialog';
+import { GetTokensDialog } from './GetTokensDialog';
 import { useUserAccountData, useReserveData, useTokenData, useAavePool, useUserConfiguration } from '@/hooks/useAavePool';
 import { useUserPositions, useAssetPosition, useProtocolStats } from '@/hooks/useUserPositions';
 import { RESERVE_ASSETS, getContractConfig } from '@/config/contracts';
@@ -87,6 +88,7 @@ export function Dashboard() {
   const [repayDialogOpen, setRepayDialogOpen] = useState(false);
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [collateralDialogOpen, setCollateralDialogOpen] = useState(false);
+  const [getTokensDialogOpen, setGetTokensDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<keyof typeof RESERVE_ASSETS>('USDT');
   
   const { address, isConnected, isConnecting, isReconnecting } = useAccount();
@@ -175,6 +177,11 @@ export function Dashboard() {
   const openCollateralDialog = (asset: keyof typeof RESERVE_ASSETS) => {
     setSelectedAsset(asset);
     setCollateralDialogOpen(true);
+  };
+
+  const openGetTokensDialog = (asset: keyof typeof RESERVE_ASSETS) => {
+    setSelectedAsset(asset);
+    setGetTokensDialogOpen(true);
   };
 
   // Get user configuration for collateral status
@@ -616,6 +623,7 @@ export function Dashboard() {
                         protocolStats={protocolStats}
                         onSupply={() => openSupplyDialog(key as keyof typeof RESERVE_ASSETS)}
                         onBorrow={() => openBorrowDialog(key as keyof typeof RESERVE_ASSETS)}
+                        onGetTokens={() => openGetTokensDialog(key as keyof typeof RESERVE_ASSETS)}
                       />
                     ))}
                   </tbody>
@@ -654,6 +662,12 @@ export function Dashboard() {
         onOpenChange={setCollateralDialogOpen}
         asset={selectedAsset}
       />
+
+      <GetTokensDialog
+        open={getTokensDialogOpen}
+        onOpenChange={setGetTokensDialogOpen}
+        asset={selectedAsset}
+      />
     </div>
   );
 }
@@ -664,9 +678,10 @@ interface AssetRowProps {
   protocolStats: ReturnType<typeof useProtocolStats>;
   onSupply: () => void;
   onBorrow: () => void;
+  onGetTokens: () => void;
 }
 
-function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: AssetRowProps) {
+function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow, onGetTokens }: AssetRowProps) {
   const chainId = useChainId();
   const config = getContractConfig(chainId);
   const { address } = useAccount();
@@ -785,6 +800,17 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
 
       <td className="py-3 px-3 sm:py-4 sm:px-6 text-right">
         <div className="flex flex-col space-y-1 items-end">
+          {/* Show "Get tokens" button for all assets except WGAS */}
+          {reserve.symbol !== 'WGAS' && (
+            <Button
+              onClick={onGetTokens}
+              size="sm"
+              className="bg-gradient-to-r from-green-500/80 to-emerald-600/80 hover:from-green-500 hover:to-emerald-600 text-white border-0 text-xs whitespace-nowrap w-24"
+            >
+              Get tokens
+            </Button>
+          )}
+
           {/* Show "Deposit" button for all users */}
           <Button
             onClick={onSupply}
@@ -792,10 +818,7 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
             className="bg-slate-600/50 hover:bg-slate-600 text-white border-0 text-xs whitespace-nowrap w-24"
             disabled={!address}
           >
-            {assetPosition.hasSupplied ?
-              'Deposit' :
-              'Deposit'
-            }
+            Deposit
           </Button>
 
           {/* Show "Borrow" button - always visible (handled in BorrowDialog if no collateral) */}
