@@ -16,6 +16,19 @@ import { useUserPositions, useAssetPosition, useProtocolStats } from '@/hooks/us
 import { RESERVE_ASSETS, getContractConfig } from '@/config/contracts';
 import { formatNumber } from '@/lib/utils';
 
+// Helper function to get correct icon for each asset
+function getAssetIcon(symbol: string): string {
+  switch (symbol) {
+    case 'WGAS': return '/img/gas.png';
+    case 'NEO': return '/img/neo.png';
+    case 'USDT': return '/img/usdt.png';
+    case 'USDC': return '/img/usdc.png';
+    case 'ETH': return '/img/eth.png';
+    case 'BTC': return '/img/btc.svg';
+    default: return '/img/neo.png';
+  }
+}
+
 export function Dashboard() {
   const [supplyDialogOpen, setSupplyDialogOpen] = useState(false);
   const [borrowDialogOpen, setBorrowDialogOpen] = useState(false);
@@ -107,8 +120,8 @@ export function Dashboard() {
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo - clickable */}
             <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer">
-              <img src="/img/logo_2.png" alt="Neovalend" className="h-8 sm:h-10 w-auto" />
-              <span className="text-lg sm:text-xl font-bold text-white hidden sm:inline">Neovalend</span>
+              <img src="/img/logo_2.png" alt="NeovaLend" className="h-8 sm:h-10 w-auto" />
+              <span className="text-lg sm:text-xl font-bold text-white hidden sm:inline">NeovaLend</span>
             </a>
 
             {/* Desktop Links */}
@@ -122,19 +135,6 @@ export function Dashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>Get Tokens</span>
-              </a>
-
-              <a
-                href="https://docs.neovalend.finance"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors text-sm"
-                title="Documentation"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <span>Documentation</span>
               </a>
             </div>
 
@@ -249,19 +249,6 @@ export function Dashboard() {
                   </svg>
                   <span>Get Tokens</span>
                 </a>
-
-                <a
-                  href="https://docs.neovalend.finance"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-700 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  <span>Documentation</span>
-                </a>
               </div>
             </div>
           )}
@@ -320,11 +307,7 @@ export function Dashboard() {
                           <div className="flex items-center justify-between sm:justify-start">
                             <div className="flex items-center space-x-3">
                               <img
-                                src={
-                                  position.assetConfig.symbol === 'USDT' ? '/img/usdt.png' :
-                                  position.assetConfig.symbol === 'BTC' ? '/img/btc.svg' :
-                                  '/img/gas.png'
-                                }
+                                src={getAssetIcon(position.assetConfig.symbol)}
                                 alt={position.assetConfig.symbol}
                                 className="w-8 h-8 rounded-full"
                               />
@@ -469,11 +452,7 @@ export function Dashboard() {
                           <div className="flex items-center justify-between sm:justify-start">
                             <div className="flex items-center space-x-3">
                               <img
-                                src={
-                                  position.assetConfig.symbol === 'USDT' ? '/img/usdt.png' :
-                                  position.assetConfig.symbol === 'BTC' ? '/img/btc.svg' :
-                                  '/img/gas.png'
-                                }
+                                src={getAssetIcon(position.assetConfig.symbol)}
                                 alt={position.assetConfig.symbol}
                                 className="w-8 h-8 rounded-full"
                               />
@@ -695,11 +674,7 @@ function AssetRow({ assetKey, reserve, protocolStats, onSupply, onBorrow }: Asse
       <td className="py-3 pl-3 pr-10 sm:py-4 sm:pl-6 sm:pr-14">
         <div className="flex items-center space-x-2 sm:space-x-3">
           <img
-            src={
-              reserve.symbol === 'USDT' ? '/img/usdt.png' :
-              reserve.symbol === 'BTC' ? '/img/btc.svg' :
-              '/img/gas.png'
-            }
+            src={getAssetIcon(reserve.symbol)}
             alt={reserve.symbol}
             className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
           />
