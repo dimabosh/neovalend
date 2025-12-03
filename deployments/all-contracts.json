@@ -1,7 +1,7 @@
 {
   "network": "neox-testnet",
   "deployer": "0x9876d5A1601D2E796e8Ed5151527609938070d9f",
-  "timestamp": "2025-12-02T16:40:52.273Z",
+  "timestamp": "2025-12-03T13:16:49.971Z",
   "phase": "core-6-completed",
   "tokens": {
     "NEO": "0x8B0652a4db1670741dAb3c4bf882afbACDb44D3C",
@@ -42,7 +42,8 @@
     "AaveProtocolDataProvider": "0x73a3a6AfD28230118678B4D3926c844D4Ab6A43e",
     "UiPoolDataProviderV3": "0xbd4d0C482A9f141a916938609a058E4A789B392E",
     "UiIncentiveDataProviderV3": "0x8Ac74680dBD5111563f80B00bcDeaCB6d53Fdd10",
-    "WrappedTokenGatewayV3": "0x6626f8CBa71ADaD1Ab0D1C0c1999c1632D02726d"
+    "WrappedTokenGatewayV3": "0x6626f8CBa71ADaD1Ab0D1C0c1999c1632D02726d",
+    "SimpleFaucet": "0x439455158daC8831dd7b2CAB1bEE4989597cbe40"
   },
   "status": "PROTOCOL_FULLY_CONFIGURED",
   "priceOracles": {
